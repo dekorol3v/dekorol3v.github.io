@@ -93,19 +93,26 @@ a:hover {
   100% { box-shadow: 0 0 10px rgba(255, 123, 0, 0.5); }
 }
 
-/* --- 🔸 Сетка профессий --- */
+/* Убираем фон и рамку вокруг блока */
 .skills {
   margin: 40px auto;
-  width: 100%;
+  width: 90%;
   max-width: 1100px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
+/* Сетка карточек */
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 14px;
+  justify-items: stretch;
 }
 
+/* Отдельные карточки */
 .skill {
   background: rgba(255, 140, 0, 0.05);
   border: 1px solid rgba(255, 140, 0, 0.3);
@@ -125,6 +132,7 @@ a:hover {
   transform: translateY(-3px);
 }
 
+
 /* --- 🔸 Текст в блоке "Обо мне" и др. --- */
 .hero-text {
   display: flex;
@@ -138,3 +146,4 @@ footer {
   opacity: 0.6;
   font-size: 0.9rem;
 }
+

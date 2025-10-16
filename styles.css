@@ -13,13 +13,13 @@ body {
   padding: 60px 20px;
   min-height: 100vh;
 
-  /* 🔺 Двухуровневая сетка треугольников (смещённые ряды) */
+  /* 🔺 Новый треугольный фон */
   background-image: url("data:image/svg+xml;utf8,\
   <svg xmlns='http://www.w3.org/2000/svg' width='100' height='87' viewBox='0 0 100 87'>\
     <defs>\
-      <pattern id='tri' patternUnits='userSpaceOnUse' width='100' height='87'>\
-        <path d='M0 87 L50 0 L100 87 Z' fill='none' stroke='rgba(255,123,0,0.05)' stroke-width='1'/>\
-        <path d='M-50 43.5 L0 -43.5 L50 43.5 Z' fill='none' stroke='rgba(255,123,0,0.05)' stroke-width='1' transform='translate(50,43.5)'/>\
+      <pattern id='tri' patternUnits='userSpaceOnUse' width='60' height='52'>\
+        <path d='M30 0 L60 52 L0 52 Z' fill='none' stroke='rgba(255,123,0,0.05)' stroke-width='1'/>\
+        <path d='M0 26 L30 78 L-30 78 Z' fill='none' stroke='rgba(255,123,0,0.05)' stroke-width='1'/>\
       </pattern>\
     </defs>\
     <rect width='100%' height='100%' fill='url(%23tri)' />\
@@ -133,5 +133,6 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
 
 

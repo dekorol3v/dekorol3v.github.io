@@ -93,22 +93,25 @@ a:hover {
   100% { box-shadow: 0 0 10px rgba(255, 123, 0, 0.5); }
 }
 
-.skills {
-  margin: 40px auto;
-  width: 100%;
-  max-width: 900px; /* 👈 Совпадает с .container из верхнего блока */
-  display: flex;
-  justify-content: center;
-}
-
+/* --- 🔸 Контейнер карточек --- */
 .skills-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
+
+  /* Совпадение по ширине с верхним блоком */
+  max-width: 900px; /* 👈 точно как .container или .hero-content */
+  margin: 40px auto 0 auto;
+
+  /* Убираем любой фон или рамку */
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
-/* Каждая плашка — по размеру текста */
+/* --- 🔸 Отдельные карточки --- */
 .skill {
   background: rgba(255, 140, 0, 0.05);
   border: 1px solid rgba(255, 140, 0, 0.3);
@@ -117,9 +120,8 @@ a:hover {
   font-size: 14px;
   color: #ffa94d;
   text-align: center;
-  white-space: nowrap; /* 👈 не переносим слова внутри плашки */
+  white-space: nowrap; /* ширина под текст */
   transition: all 0.3s ease;
-  cursor: default;
 }
 
 .skill:hover {
@@ -143,5 +145,6 @@ footer {
   opacity: 0.6;
   font-size: 0.9rem;
 }
+
 
 

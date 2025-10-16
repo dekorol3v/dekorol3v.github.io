@@ -13,7 +13,6 @@ body {
   padding: 60px 20px;
   min-height: 100vh;
 
-  /* 🔺 Треугольный фон */
   background-image: url("data:image/svg+xml;utf8,\
   <svg xmlns='http://www.w3.org/2000/svg' width='100' height='87' viewBox='0 0 100 87'>\
     <defs>\
@@ -93,41 +92,43 @@ a:hover {
   100% { box-shadow: 0 0 10px rgba(255, 123, 0, 0.5); }
 }
 
-/* --- 🔸 Контейнер карточек --- */
 .skills-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-
-  /* Совпадение по ширине с верхним блоком */
-  max-width: 900px; /* 👈 точно как .container или .hero-content */
-  margin: 40px auto 0 auto;
-
-  /* Убираем любой фон или рамку */
+  justify-content: space-between;
+  gap: 12px 10px;
+  max-width: 900px;
+  margin: -30px auto 0 auto;
+  padding: 0;
   background: none;
   border: none;
   box-shadow: none;
-  padding: 0;
 }
 
-/* --- 🔸 Отдельные карточки --- */
+/* Плашки */
 .skill {
   background: rgba(255, 140, 0, 0.05);
   border: 1px solid rgba(255, 140, 0, 0.3);
   border-radius: 10px;
-  padding: 8px 16px;
+  padding: 12px 16px;
   font-size: 14px;
   color: #ffa94d;
   text-align: center;
-  white-space: nowrap; /* ширина под текст */
-  transition: all 0.3s ease;
+  white-space: nowrap;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.25s ease; /* 👈 плавный подъём */
+  flex-grow: 1;
 }
 
 .skill:hover {
-  background: rgba(255, 140, 0, 0.15);
+  background: rgba(255, 140, 0, 0.12);
   border-color: #ffb74a;
-  box-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
+  box-shadow:
+    0 0 10px rgba(255, 140, 0, 0.25),
+    0 0 20px rgba(255, 140, 0, 0.1); /* двойное мягкое свечение */
   transform: translateY(-3px);
 }
 
@@ -145,6 +146,5 @@ footer {
   opacity: 0.6;
   font-size: 0.9rem;
 }
-
 
 

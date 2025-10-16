@@ -114,6 +114,36 @@ footer {
   }
 }
 
+.skills {
+  margin: 40px 0;
+  text-align: center;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  justify-items: center;
+}
+
+.skill {
+  background: rgba(255, 140, 0, 0.05);
+  border: 1px solid rgba(255, 140, 0, 0.3);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #ffa94d;
+  transition: all 0.3s ease;
+}
+
+.skill:hover {
+  background: rgba(255, 140, 0, 0.15);
+  border-color: #ffb74a;
+  box-shadow: 0 0 10px rgba(255, 140, 0, 0.4);
+  transform: translateY(-3px);
+}
+
+
 .hero-text {
   display: flex;
   flex-direction: column;
@@ -133,6 +163,7 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
 
 
 

@@ -13,7 +13,7 @@ body {
   padding: 60px 20px;
   min-height: 100vh;
 
-  /* 🔺 Новый треугольный фон */
+  /* 🔺 Треугольный фон */
   background-image: url("data:image/svg+xml;utf8,\
   <svg xmlns='http://www.w3.org/2000/svg' width='100' height='87' viewBox='0 0 100 87'>\
     <defs>\
@@ -29,6 +29,7 @@ body {
   background-attachment: fixed;
 }
 
+/* Основной контейнер */
 .container {
   width: 100%;
   max-width: 900px;
@@ -37,39 +38,29 @@ body {
   gap: 60px;
 }
 
+/* Общие секции */
 section {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 40px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.4);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
 }
 
+/* Заголовки */
 h1, h2, h3 {
   color: #fff;
   margin-bottom: 15px;
 }
 
+/* --- 🔸 Подписи, ссылки, текст --- */
 .subtitle {
-  color: #00cfff;
+  color: #ff7b00; /* оставляем единый стиль */
   margin-bottom: 10px;
 }
 
-.skills-grid {
-  display: flex;
-  justify-content: space-between;
-}
-
-.skills-grid ul {
-  list-style: none;
-}
-
-.skills-grid li {
-  margin-bottom: 6px;
-}
-
 a {
-  color: #00cfff;
+  color: #ff7b00;
   text-decoration: none;
 }
 
@@ -77,13 +68,7 @@ a:hover {
   text-decoration: underline;
 }
 
-footer {
-  text-align: center;
-  opacity: 0.6;
-  font-size: 0.9rem;
-}
-
-/* 🧍 Фото и заголовок */
+/* --- 🔸 Фото и заголовок --- */
 .hero-content {
   display: flex;
   align-items: center;
@@ -103,37 +88,34 @@ footer {
 }
 
 @keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 8px rgba(255, 123, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 123, 0, 0.8);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 123, 0, 0.5);
-  }
+  0% { box-shadow: 0 0 8px rgba(255, 123, 0, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(255, 123, 0, 0.8); }
+  100% { box-shadow: 0 0 10px rgba(255, 123, 0, 0.5); }
 }
 
+/* --- 🔸 Сетка профессий --- */
 .skills {
-  margin: 40px 0;
-  text-align: center;
+  margin: 40px auto;
+  width: 100%;
+  max-width: 1100px;
 }
 
 .skills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  justify-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
 }
 
 .skill {
   background: rgba(255, 140, 0, 0.05);
   border: 1px solid rgba(255, 140, 0, 0.3);
   border-radius: 10px;
-  padding: 10px 16px;
+  padding: 10px 0;
   font-size: 14px;
   color: #ffa94d;
+  text-align: center;
   transition: all 0.3s ease;
+  cursor: default;
 }
 
 .skill:hover {
@@ -143,27 +125,16 @@ footer {
   transform: translateY(-3px);
 }
 
-
+/* --- 🔸 Текст в блоке "Обо мне" и др. --- */
 .hero-text {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.subtitle {
-  color: #ff7b00;
-  margin-bottom: 10px;
+/* --- 🔸 Футер --- */
+footer {
+  text-align: center;
+  opacity: 0.6;
+  font-size: 0.9rem;
 }
-
-a {
-  color: #ff7b00;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-
-
-

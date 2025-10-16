@@ -86,10 +86,24 @@ footer {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  border: 2px solid #00cfff;
+  border: 2px solid #ff7b00;
   object-fit: cover;
-  box-shadow: 0 0 15px rgba(0, 207, 255, 0.3);
-  flex-shrink: 0;
+
+  /* 🟠 Пульсирующее свечение */
+  box-shadow: 0 0 20px rgba(255, 123, 0, 0.6);
+  animation: pulse-glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 8px rgba(255, 123, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 123, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 123, 0, 0.5);
+  }
 }
 
 .hero-text {
@@ -98,4 +112,16 @@ footer {
   justify-content: center;
 }
 
+.subtitle {
+  color: #ff7b00;
+  margin-bottom: 10px;
+}
 
+a {
+  color: #ff7b00;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

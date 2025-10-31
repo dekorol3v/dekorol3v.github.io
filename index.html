@@ -1,109 +1,109 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Шаг 2</title>
-<style>
-  :root { --bg:#0b0c0f; --fg:#e6e6e6; --muted:#9aa0a6; }
-  html,body{height:100%}
-  body{
-    margin:0; background:radial-gradient(ellipse at 50% 30%, #14161b 0%, var(--bg) 60%);
-    color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    display:flex; align-items:center; justify-content:center; padding:24px;
-    flex-direction:column;
-  }
-  .card{
-    width:min(720px, 100%); background:rgba(255,255,255,.03);
-    border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:28px 22px;
-    box-shadow:0 10px 40px rgba(0,0,0,.3);
-  }
-  h1{margin:0 0 6px; font-weight:600; letter-spacing:.2px}
-  p.lead{margin:.25rem 0 1.1rem; color:var(--muted)}
-  pre{
-    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
-    border-radius:12px; padding:16px; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    line-height:1.6; font-size:16px; margin:14px 0 8px;
-  }
-  .hint{color:var(--muted); font-size:14px; margin:0 0 18px}
-  .row{display:flex; gap:8px; margin-top:8px}
-  input[type="text"]{
-    flex:1; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
-    background:rgba(255,255,255,.03); color:var(--fg); font-size:16px; outline:none;
-  }
-  button{
-    padding:12px 16px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
-    background:rgba(255,255,255,.08); color:var(--fg); font-weight:600; cursor:pointer;
-  }
-  button:hover{background:rgba(255,255,255,.12)}
-  .msg{margin-top:10px; font-size:14px}
-  .msg.ok{color:#8be78b}
-  .msg.err{color:#ff9aa2}
-  .fade{animation:fade .9s ease both}
-  @keyframes fade{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
-  .footnote {
-    width:min(720px,100%);
-    margin-top:12px;
-    text-align:center;
-    color:var(--muted);
-    font-size:12.5px;
-    opacity:.85;
-    user-select:none;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Портфолио — Твои работы</title>
+  <meta name="description" content="Портфолио — работы, кейсы, контакты." />
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <main class="card fade" role="main">
-    <h1>Ты сделал первый шаг.</h1>
-    <p class="lead">
-      Но желание — это больше, чем просто шаг. Оно живёт <span class="whisper">между строк</span>.
-    </p>
-    <pre aria-label="Загадка (код Морзе)">.... --- - . .-..</pre>
-    <p class="hint">🔍 Подумай о ритме. Переведи, а затем — на русский. И добавь частицу, что делает желание мягким.</p>
+  <header class="topbar" role="banner">
+    <div class="topbar-inner">
+      <button id="sidebarToggle" class="icon-btn" aria-label="Открыть меню">☰</button>
+      <div class="logo">
+        <img src="assets/logo.svg" alt="logo" width="36" height="36">
+        <span class="logo-text">DSergeevich</span>
+      </div>
 
-    <div class="row">
-      <input id="answer" type="text" inputmode="text" autocomplete="off" placeholder="введи ответ…" aria-label="Ответ" />
-      <button id="check">Проверить</button>
+      <nav class="topnav" aria-label="Главная навигация">
+        <a href="#projects">Работы</a>
+        <a href="#about">О себе</a>
+        <a href="#contacts">Контакты</a>
+        <a href="admin.html" class="admin-link">Admin</a>
+      </nav>
     </div>
-    <div id="msg" class="msg" aria-live="polite"></div>
-  </main>
-  <p class="footnote">Конечно есть код элемента сайта, но интереснее же разгадать самой)</p>
+  </header>
 
-<script>
-  const NEXT_URL = "https://t.me/korekii_love";
+  <div class="layout" id="layout">
+    <aside class="sidebar" id="sidebar" aria-label="Боковая панель">
+      <div class="sidebar-inner">
+        <div class="profile">
+          <div class="avatar-placeholder" aria-hidden="true"></div>
+          <div class="profile-text">
+            <strong>Твоё имя</strong>
+            <small>Фронтенд / Дизайн</small>
+          </div>
+        </div>
 
-  function normalize(s){
-    return (s || "")
-      .toLowerCase()
-      .replaceAll(/[ё]/g, "е")
-      .replaceAll(/\s+/g, " ")
-      .trim();
-  }
+        <nav class="side-nav" aria-label="Боковое меню">
+          <a href="#projects" class="side-item">Портфолио</a>
+          <a href="#about" class="side-item">О себе</a>
+          <a href="#contacts" class="side-item">Контакты</a>
+        </nav>
 
-  function isCorrect(s){
-    const n = normalize(s);
-    return n === "хотел бы" || n === "хотелбы";
-  }
+        <div class="sidebar-footer">
+          <small class="small">© <span id="year"></span> Твоё имя</small>
+        </div>
+      </div>
+    </aside>
 
-  const input = document.getElementById("answer");
-  const btn = document.getElementById("check");
-  const msg = document.getElementById("msg");
+    <main class="content" id="main" role="main">
+      <section class="hero" aria-label="Главный кейс">
+        <div class="hero-card">
+          <div class="hero-image" aria-hidden="true"></div>
+          <div class="hero-content">
+            <h1>Привет — я делаю красивые интерфейсы</h1>
+            <p class="lead">Показываю тут свои лучшие кейсы — дизайн, вёрстка и интеграции.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#projects">Мои работы</a>
+              <a class="btn" href="#about">Подробнее обо мне</a>
+            </div>
+          </div>
+        </div>
+      </section>
 
-  function submit(){
-    const val = input.value;
-    if (isCorrect(val)) {
-      msg.textContent = "Верно. Дверь открыта →";
-      msg.className = "msg ok";
-      setTimeout(()=>{ window.location.href = NEXT_URL; }, 800);
-    } else {
-      msg.textContent = "Почти. Подсказка: расшифруй код, переведи слово и добавь мягкую частицу.";
-      msg.className = "msg err";
-    }
-  }
+      <section id="projects" class="projects-section" aria-label="Работы">
+        <div class="section-head">
+          <h2>Выбранные работы</h2>
+          <p class="small muted">Ниже — карточки проектов. Нажмите на карточку для подробностей.</p>
+        </div>
 
-  btn.addEventListener("click", submit);
-  input.addEventListener("keydown", (e)=>{ if(e.key==="Enter") submit(); });
-</script>
+        <div id="projects-grid" class="projects-grid" aria-live="polite">
+          <!-- Project cards are rendered here by scripts/main.js -->
+        </div>
+      </section>
+
+      <section id="about" class="about" aria-label="О себе">
+        <h2>О себе</h2>
+        <p>Коротко: напиши пару строк о себе — чем занимаешься, какие технологии используешь, и что ищешь.</p>
+      </section>
+
+      <footer id="contacts" class="site-footer" role="contentinfo">
+        <div class="footer-inner">
+          <div>
+            <h3>Контакты</h3>
+            <p>Email: <a href="mailto:your@email.example">your@email.example</a></p>
+            <p>Telegram: <a href="https://t.me/yourtg" target="_blank" rel="noopener">yourtg</a></p>
+          </div>
+          <small class="small muted">Сайт собран на HTML/CSS/JS — данные загружаются из <code>data/projects.json</code>.</small>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Modal for project details -->
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-panel" role="document" aria-labelledby="modalTitle">
+      <button id="modalClose" class="modal-close" aria-label="Закрыть">✕</button>
+      <h3 id="modalTitle"></h3>
+      <p id="modalDesc" class="small muted"></p>
+      <div id="modalGallery" class="modal-gallery"></div>
+      <div style="margin-top:12px"><a id="modalLink" class="btn" href="#" target="_blank" rel="noopener">Открыть проект</a></div>
+    </div>
+  </div>
+
+  <script src="scripts/main.js" defer></script>
 </body>
 </html>
-

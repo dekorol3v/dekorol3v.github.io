@@ -49,32 +49,32 @@
     </aside>
 
     <main class="content" id="main" role="main">
-      <section class="hero" aria-label="Главный кейс">
-        <div class="hero-card">
-          <div class="hero-image" aria-hidden="true"></div>
+      <section class="hero reveal" aria-label="Главный кейс">
+        <div class="hero-card" id="heroCard">
+          <div class="hero-image" id="heroImage" aria-hidden="true"></div>
           <div class="hero-content">
-            <h1>Привет — я делаю красивые интерфейсы</h1>
+            <h1 class="hero-title">Привет — я делаю красивые интерфейсы</h1>
             <p class="lead">Показываю тут свои лучшие кейсы — дизайн, вёрстка и интеграции.</p>
             <div class="hero-cta">
-              <a class="btn btn-primary" href="#projects">Мои работы</a>
+              <a class="btn btn-primary shimmer" href="#projects">Мои работы</a>
               <a class="btn" href="#about">Подробнее обо мне</a>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="projects" class="projects-section" aria-label="Работы">
+      <section id="projects" class="projects-section">
         <div class="section-head">
           <h2>Выбранные работы</h2>
           <p class="small muted">Ниже — карточки проектов. Нажмите на карточку для подробностей.</p>
         </div>
 
         <div id="projects-grid" class="projects-grid" aria-live="polite">
-          <!-- Project cards are rendered here by scripts/main.js -->
+          <!-- Project cards rendered by scripts/main.js -->
         </div>
       </section>
 
-      <section id="about" class="about" aria-label="О себе">
+      <section id="about" class="about">
         <h2>О себе</h2>
         <p>Коротко: напиши пару строк о себе — чем занимаешься, какие технологии используешь, и что ищешь.</p>
       </section>

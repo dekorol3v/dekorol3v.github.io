@@ -1,277 +1,154 @@
-// main.js — particles + UI
-// ------------------------
-// Particles system (lightweight, adaptive)
-// ------------------------
-(function () {
-  const canvas = document.getElementById('bg-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d', { alpha: true });
-  let DPR = Math.min(window.devicePixelRatio || 1, 2); // cap DPR to 2 for perf
-  let W = 0, H = 0;
-  let particles = [];
-  let animationId = null;
-  let paused = false;
+:root{
+  --bg:#0c0f12;             /* твой цвет */
+  --panel:#141617;
+  --card:#1a1c1f;
+  --muted:#9da3a8;
+  --text:#e6e8ea;
+  --accent:#2EC4FF;        /* сине-голубой акцент */
+  --accent-2:#27B5FF;
+  --glow:rgba(46,196,255,0.10);
+  --radius:14px;
+  --gap:20px;
+  --max-width:1200px;
+  --glass-bg: rgba(255,255,255,0.03);
+  --transition-fast: 160ms;
+  --transition: 260ms cubic-bezier(.2,.9,.2,1);
+}
 
-  // Respect prefers-reduced-motion
-  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* canvas bg */
+#bg-canvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  pointer-events:none;
+  display:block;
+}
 
-  function resize() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = canvas.clientWidth || window.innerWidth;
-    H = canvas.clientHeight || window.innerHeight;
-    canvas.width = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    // recompute particle count based on area
-    const area = W * H;
-    let baseCount = Math.floor(area / 9000); // 1 per ~9000 px2
-    // adaptive caps
-    if (W < 720) baseCount = Math.min(baseCount, 18);
-    if (reducedMotion) baseCount = Math.min(baseCount, 8);
-    const count = Math.max(12, Math.min(baseCount, 120));
-    initParticles(count);
-  }
+/* базовые */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.45;
+  transition:background .3s ease;
+}
 
-  function rand(min, max) { return Math.random() * (max - min) + min; }
+/* topbar */
+.topbar{
+  position:sticky; top:0; z-index:60;
+  background:linear-gradient(180deg, rgba(11,13,15,0.88), rgba(11,13,15,0.7));
+  border-bottom:1px solid rgba(255,255,255,0.02);
+}
+.topbar-inner{display:flex;align-items:center;gap:12px;padding:12px 20px;max-width:var(--max-width);margin:0 auto;width:100%}
+.logo{display:flex;align-items:center;gap:12px}
+.logo img{filter:drop-shadow(0 4px 10px rgba(0,0,0,0.6))}
+.logo-text{font-weight:700;letter-spacing:0.2px;color:var(--text)}
+.topnav{margin-left:auto;display:flex;gap:14px;align-items:center}
+.topnav a{color:var(--muted);text-decoration:none;font-size:14px;padding:8px 10px;border-radius:8px;transition:color var(--transition), background var(--transition)}
+.topnav a:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+.admin-link{border:1px solid rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px}
 
-  function initParticles(n) {
-    particles = [];
-    for (let i = 0; i < n; i++) {
-      particles.push({
-        x: rand(0, W),
-        y: rand(0, H),
-        vx: rand(-0.2, 0.2),
-        vy: rand(-0.05, 0.05),
-        r: rand(0.6, 2.6),
-        alpha: rand(0.06, 0.26),
-        hueOffset: rand(-10, 10)
-      });
-    }
-  }
+/* layout */
+.layout{display:grid;grid-template-columns:280px 1fr;gap:var(--gap);max-width:var(--max-width);margin:28px auto;padding:0 18px;align-items:start}
 
-  function render() {
-    if (paused) return;
-    ctx.clearRect(0, 0, W, H);
+/* sidebar - glass */
+.sidebar-inner{
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-radius:var(--radius);
+  padding:18px;
+  border:1px solid rgba(255,255,255,0.02);
+  box-shadow: 0 8px 40px rgba(2,4,6,0.6);
+  backdrop-filter: blur(6px);
+}
+.profile{display:flex;gap:12px;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.02);margin-bottom:12px}
+.avatar-placeholder{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#232425,#2c2d30);box-shadow:inset 0 -3px 8px rgba(0,0,0,0.6)}
+.side-nav{display:flex;flex-direction:column;gap:8px;padding-top:8px}
+.side-item{display:block;color:var(--muted);padding:12px;border-radius:10px;text-decoration:none;transition:background var(--transition),color var(--transition)}
+.side-item:hover{color:var(--text);background:rgba(255,255,255,0.02)}
 
-    // subtle background glow in center
-    const g = ctx.createRadialGradient(W * 0.75, H * 0.25, 0, W * 0.75, H * 0.25, Math.max(W, H) * 0.8);
-    g.addColorStop(0, 'rgba(255,138,61,0.02)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
+/* hero */
+.hero{margin-bottom:20px}
+.hero-card{
+  display:flex;gap:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+  border-radius:18px;overflow:hidden;align-items:stretch;min-height:320px;position:relative;padding:0;border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 18px 60px rgba(2,4,6,0.65);
+  transition: transform 300ms cubic-bezier(.2,.9,.2,1), box-shadow 300ms ease;
+}
+.hero-card:hover{transform: translateY(-6px); box-shadow:0 30px 80px rgba(2,6,10,0.7);}
+.hero-image{
+  width:50%;min-width:360px;background:
+    linear-gradient(180deg, rgba(12,12,12,0.15), rgba(0,0,0,0.25)),
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="100%" height="100%" fill="%23211"/><text x="50%" y="50%" fill="%23888" font-size="36" text-anchor="middle">Hero image placeholder</text></svg>');
+  background-size:cover;background-position:center;
+  transition:transform .25s ease, filter .25s ease;
+  will-change:transform;
+  filter: contrast(0.95) saturate(0.95);
+  position:relative;
+}
+.hero-content{padding:36px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.hero-title{font-size:32px;margin:0 0 6px 0;letter-spacing:-0.6px}
+.lead{color:var(--muted);max-width:70%}
+.btn{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text);cursor:pointer;text-decoration:none;display:inline-block;transition: transform var(--transition-fast), box-shadow var(--transition), background var(--transition), color var(--transition)}
+.btn:focus{outline:2px solid rgba(46,196,255,0.12);outline-offset:3px}
+.btn:hover{transform:translateY(-3px); box-shadow:0 10px 28px rgba(46,196,255,0.06)}
+.btn:active{transform:translateY(-1px) scale(.995)}
+.btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:0;color:#051018;box-shadow:0 10px 30px var(--glow)}
 
-    // draw particles
-    for (let p of particles) {
-      // move
-      p.x += p.vx;
-      p.y += p.vy;
+/* shimmer */
+.shimmer{position:relative; overflow:hidden; --s:0}
+.shimmer::before{
+  content:"";position:absolute;inset:0;left:-60%;background:linear-gradient(120deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 100%);
+  transform:skewX(-18deg);
+  transition:all .9s ease;
+}
+.shimmer:hover::before{left:160%}
 
-      // wrap
-      if (p.x < -10) p.x = W + 10;
-      if (p.x > W + 10) p.x = -10;
-      if (p.y < -10) p.y = H + 10;
-      if (p.y > H + 10) p.y = -10;
+/* projects */
+.section-head{display:flex;flex-direction:column;gap:6px}
+.projects-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:12px;
+}
+.project-card{
+  background:var(--panel);border-radius:12px;padding:16px;min-height:220px;border:1px solid rgba(255,255,255,0.03);
+  transform-origin:center center; cursor:pointer; display:flex;flex-direction:column;
+  will-change:transform, box-shadow;
+  transition: transform .32s cubic-bezier(.2,.9,.2,1), box-shadow .32s ease, border-color .22s ease;
+}
+.project-card .project-thumb{height:120px;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#222,#242426);margin-bottom:12px}
+.project-card img{width:100%;height:120px;object-fit:cover;display:block;transition: transform .35s cubic-bezier(.2,.9,.2,1)}
+.project-title{font-weight:700;margin:0 0 8px 0}
+.project-desc{color:var(--muted);font-size:14px;margin:0 0 12px 0}
+.project-tags{margin-top:auto;color:var(--muted);font-size:13px}
 
-      // draw circle
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(240,138,61,${p.alpha})`; // warm orange tint
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
+/* hover / focus effect for cards */
+.project-card:hover{
+  transform:translateY(-10px);
+  box-shadow:0 30px 80px rgba(2,6,10,0.7);
+  border-color: rgba(46,196,255,0.12);
+}
+.project-card:active{transform:translateY(-6px) scale(.995)}
+.project-card:focus{outline:2px solid rgba(46,196,255,0.08);outline-offset:6px}
 
-    // draw connecting lines for close particles (sparse)
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i], b = particles[j];
-        const dx = a.x - b.x, dy = a.y - b.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 90) {
-          const alpha = (1 - dist / 90) * 0.08; // faint lines
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(240,138,61,${alpha})`;
-          ctx.lineWidth = 1;
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
-        }
-      }
-    }
+/* reveal animations */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s cubic-bezier(.2,.9,.2,1);}
+.reveal.in-view{opacity:1;transform:translateY(0)}
 
-    animationId = requestAnimationFrame(render);
-  }
+/* modal */
+.modal{display:none;position:fixed;inset:0;z-index:80;align-items:center;justify-content:center}
+.modal[aria-hidden="false"]{display:flex}
+.modal-backdrop{position:absolute;inset:0;background:rgba(2,6,10,0.6)}
+.modal-panel{position:relative;background:var(--card);padding:18px;border-radius:12px;max-width:920px;width:94%;z-index:85;border:1px solid rgba(255,255,255,0.03)}
+.modal-close{position:absolute;right:12px;top:8px;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
+.modal-gallery{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.modal-gallery img{width:180px;height:120px;object-fit:cover;border-radius:8px;}
 
-  function start() {
-    if (reducedMotion) return; // respect user's preference
-    if (!animationId) {
-      paused = false;
-      render();
-    }
-  }
-  function stop() {
-    if (animationId) cancelAnimationFrame(animationId);
-    animationId = null;
-    paused = true;
-  }
-
-  // pause when tab hidden
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stop(); else start();
-  });
-
-  window.addEventListener('resize', () => resize());
-  window.addEventListener('orientationchange', () => resize());
-
-  // initialize with canvas size
-  resize();
-  // Respect CPU/memory: if small screen or reduced motion -> less/no animation
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 720;
-  if (!reducedMotion && !isMobile) start();
-  // If mobile but not reducedMotion, still run with fewer particles
-  if (!reducedMotion && isMobile) {
-    // re-init smaller count
-    initParticles(Math.min(20, particles.length));
-    start();
-  }
-})();
-
-// ------------------------
-// Rest of UI logic (modal, hero parallax, reveal, load projects)
-// (this is the same functionality as before, unchanged) 
-// ------------------------
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('year').textContent = new Date().getFullYear();
-
-  const sidebar = document.getElementById('sidebar');
-  const toggle = document.getElementById('sidebarToggle');
-  toggle.addEventListener('click', () => {
-    const isHidden = sidebar.style.display === 'none' || getComputedStyle(sidebar).display === 'none';
-    sidebar.style.display = isHidden ? 'block' : 'none';
-  });
-
-  // modal handlers
-  const modal = document.getElementById('modal');
-  const modalBackdrop = document.getElementById('modalBackdrop');
-  const modalClose = document.getElementById('modalClose');
-  modalClose.addEventListener('click', closeModal);
-  modalBackdrop.addEventListener('click', closeModal);
-
-  function openModal(project){
-    modal.setAttribute('aria-hidden', 'false');
-    document.getElementById('modalTitle').textContent = project.title || '';
-    document.getElementById('modalDesc').textContent = project.description || '';
-    document.getElementById('modalLink').href = project.url || '#';
-    const gallery = document.getElementById('modalGallery');
-    gallery.innerHTML = '';
-    const imgs = project.gallery && project.gallery.length ? project.gallery : (project.cover ? [project.cover] : []);
-    imgs.forEach(src => {
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = project.title || '';
-      gallery.appendChild(img);
-    });
-  }
-  function closeModal(){
-    modal.setAttribute('aria-hidden','true');
-  }
-
-  // hero parallax (mouse move)
-  const heroCard = document.getElementById('heroCard');
-  const heroImage = document.getElementById('heroImage');
-  if(heroCard && heroImage){
-    let mouseX = 0, mouseY = 0, cx = 0, cy = 0;
-    heroCard.addEventListener('mousemove', (e) => {
-      const rect = heroCard.getBoundingClientRect();
-      mouseX = (e.clientX - rect.left) - rect.width/2;
-      mouseY = (e.clientY - rect.top) - rect.height/2;
-      cx = (mouseX / rect.width) * 10;
-      cy = (mouseY / rect.height) * 8;
-      heroImage.style.transform = `translate3d(${cx}px, ${cy}px, 0) scale(1.02) rotateZ(${cx * 0.02}deg)`;
-    });
-    heroCard.addEventListener('mouseleave', () => {
-      heroImage.style.transform = `translate3d(0,0,0) scale(1) rotateZ(0)`;
-    });
-  }
-
-  // reveal on scroll using IntersectionObserver
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting){
-        entry.target.classList.add('in-view');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, {threshold: 0.15});
-
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-  // load projects and render with reveal class on cards
-  const grid = document.getElementById('projects-grid');
-  fetch('data/projects.json', {cache: 'no-store'}).then(r => {
-    if(!r.ok) throw new Error('no projects.json');
-    return r.json();
-  }).then(data => {
-    if(!Array.isArray(data) || data.length === 0){
-      renderPlaceholders(6);
-    } else {
-      renderProjects(data);
-    }
-  }).catch(err => {
-    console.warn('projects.json not found — rendering placeholders', err);
-    renderPlaceholders(6);
-  });
-
-  function renderPlaceholders(n){
-    grid.innerHTML = '';
-    for(let i=0;i<n;i++){
-      const card = document.createElement('article');
-      card.className = 'project-card reveal';
-      card.innerHTML = `
-        <div class="project-thumb" aria-hidden="true"></div>
-        <h3 class="project-title">Название проекта</h3>
-        <p class="project-desc">Короткое описание проекта. Добавь реальные данные через admin.html.</p>
-        <div class="project-tags small muted">HTML • CSS • JS</div>
-      `;
-      grid.appendChild(card);
-      observer.observe(card);
-    }
-  }
-
-  function renderProjects(projects){
-    grid.innerHTML = '';
-    projects.forEach((p, idx) => {
-      const card = document.createElement('article');
-      card.className = 'project-card reveal';
-      const thumbHtml = p.cover ? `<img loading="lazy" src="${p.cover}" alt="${escapeHtml(p.title)}">` : `<div class="project-thumb" aria-hidden="true"></div>`;
-      card.innerHTML = `
-        <div class="project-thumb">${thumbHtml}</div>
-        <h3 class="project-title">${escapeHtml(p.title || 'Без названия')}</h3>
-        <p class="project-desc">${escapeHtml(p.description || '')}</p>
-        <div class="project-tags small muted">${Array.isArray(p.tags)? p.tags.join(' • '): ''}</div>
-      `;
-      // card interactions: click opens modal
-      card.tabIndex = 0;
-      card.addEventListener('click', () => openModal(p));
-      card.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(p); });
-
-      // small hover-parallax for image inside card
-      const img = card.querySelector('img');
-      if(img){
-        card.addEventListener('mousemove', (ev) => {
-          const r = card.getBoundingClientRect();
-          const px = (ev.clientX - r.left) / r.width - 0.5;
-          const py = (ev.clientY - r.top) / r.height - 0.5;
-          img.style.transform = `translate3d(${px*8}px, ${py*6}px, 0) scale(1.02)`;
-        });
-        card.addEventListener('mouseleave', () => { img.style.transform = 'translate3d(0,0,0) scale(1)'; });
-        img.style.transition = 'transform .35s cubic-bezier(.2,.9,.2,1)';
-      }
-
-      grid.appendChild(card);
-      observer.observe(card);
-    });
-  }
-
-  function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-});
+/* responsive */
+@media (max-width:1100px){ .projects-grid{grid-template-columns:repeat(2,1fr)} .hero-image{display:none} .layout{grid-template-columns:220px 1fr;padding:0 14px} }
+@media (max-width:720px){ .layout{grid-template-columns:1fr;padding:0 12px;margin:12px auto} .sidebar{display:none} .projects-grid{grid-template-columns:1fr} .topnav{display:none} }

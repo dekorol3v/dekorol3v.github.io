@@ -1,5 +1,4 @@
-// main.js — подгружает data/projects.json и рендерит карточки.
-// Показ заглушек, если projects.json отсутствует.
+// main.js — подгружает data/projects.json, рендерит карточки и добавляет анимации (parallax + reveal)
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -36,7 +35,38 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.setAttribute('aria-hidden','true');
   }
 
-  // load projects
+  // hero parallax (mouse move)
+  const heroCard = document.getElementById('heroCard');
+  const heroImage = document.getElementById('heroImage');
+  if(heroCard && heroImage){
+    let mouseX = 0, mouseY = 0, cx = 0, cy = 0;
+    heroCard.addEventListener('mousemove', (e) => {
+      const rect = heroCard.getBoundingClientRect();
+      mouseX = (e.clientX - rect.left) - rect.width/2;
+      mouseY = (e.clientY - rect.top) - rect.height/2;
+      // subtle mapping
+      cx = (mouseX / rect.width) * 10;
+      cy = (mouseY / rect.height) * 8;
+      heroImage.style.transform = `translate3d(${cx}px, ${cy}px, 0) scale(1.02) rotateZ(${cx * 0.02}deg)`;
+    });
+    heroCard.addEventListener('mouseleave', () => {
+      heroImage.style.transform = `translate3d(0,0,0) scale(1) rotateZ(0)`;
+    });
+  }
+
+  // reveal on scroll using IntersectionObserver
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.15});
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // load projects and render with reveal class on cards
   const grid = document.getElementById('projects-grid');
   fetch('data/projects.json', {cache: 'no-store'}).then(r => {
     if(!r.ok) throw new Error('no projects.json');
@@ -56,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.innerHTML = '';
     for(let i=0;i<n;i++){
       const card = document.createElement('article');
-      card.className = 'project-card';
+      card.className = 'project-card reveal';
       card.innerHTML = `
         <div class="project-thumb" aria-hidden="true"></div>
         <h3 class="project-title">Название проекта</h3>
@@ -64,25 +94,42 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="project-tags small muted">HTML • CSS • JS</div>
       `;
       grid.appendChild(card);
+      observer.observe(card);
     }
   }
 
   function renderProjects(projects){
     grid.innerHTML = '';
-    projects.forEach(p => {
+    projects.forEach((p, idx) => {
       const card = document.createElement('article');
-      card.className = 'project-card';
-      const thumbHtml = p.cover ? `<img loading="lazy" src="${p.cover}" alt="${escapeHtml(p.title)}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:10px">` : `<div class="project-thumb" aria-hidden="true"></div>`;
+      card.className = 'project-card reveal';
+      const thumbHtml = p.cover ? `<img loading="lazy" src="${p.cover}" alt="${escapeHtml(p.title)}">` : `<div class="project-thumb" aria-hidden="true"></div>`;
       card.innerHTML = `
-        ${thumbHtml}
+        <div class="project-thumb">${thumbHtml}</div>
         <h3 class="project-title">${escapeHtml(p.title || 'Без названия')}</h3>
         <p class="project-desc">${escapeHtml(p.description || '')}</p>
         <div class="project-tags small muted">${Array.isArray(p.tags)? p.tags.join(' • '): ''}</div>
       `;
+      // card interactions: click opens modal
       card.tabIndex = 0;
       card.addEventListener('click', () => openModal(p));
       card.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(p); });
+
+      // small hover-parallax for image inside card
+      const img = card.querySelector('img');
+      if(img){
+        card.addEventListener('mousemove', (ev) => {
+          const r = card.getBoundingClientRect();
+          const px = (ev.clientX - r.left) / r.width - 0.5;
+          const py = (ev.clientY - r.top) / r.height - 0.5;
+          img.style.transform = `translate3d(${px*8}px, ${py*6}px, 0) scale(1.02)`;
+        });
+        card.addEventListener('mouseleave', () => { img.style.transform = 'translate3d(0,0,0) scale(1)'; });
+        img.style.transition = 'transform .35s cubic-bezier(.2,.9,.2,1)';
+      }
+
       grid.appendChild(card);
+      observer.observe(card);
     });
   }
 

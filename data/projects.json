@@ -1,20 +1,20 @@
 [
   {
-    "id": "proj-1",
+    "id": "project-01",
     "title": "Landing для кафе",
-    "description": "Адаптивный лендинг: меню, бронирование, отзывы.",
+    "subtitle": "Адаптивный лендинг: меню, бронирование, отзывы.",
+    "description": "Адаптивный лендинг: меню, бронирование и отзывы. Технологии: HTML, CSS, Figma.",
     "tags": ["HTML","CSS","Figma"],
-    "cover": "assets/images/projects/landing-cafe-1200.jpg",
-    "gallery": [],
-    "url": "https://example.com"
+    "cover": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'><rect width='100%' height='100%' fill='%23222'/><text x='50%' y='50%' fill='%23888' font-size='36' text-anchor='middle'>Landing placeholder</text></svg>",
+    "url": "#"
   },
   {
-    "id": "proj-2",
+    "id": "project-02",
     "title": "SPA таскменеджер",
-    "description": "Приложение с drag&drop и синхронизацией.",
+    "subtitle": "Приложение с drag&drop и синхронизацией.",
+    "description": "SPA таскменеджер с drag&drop и синхронизацией. React • Node.js.",
     "tags": ["React","Node.js"],
-    "cover": "assets/images/projects/todo-app-1200.webp",
-    "gallery": [],
-    "url": null
+    "cover": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'><rect width='100%' height='100%' fill='%23222'/><text x='50%' y='50%' fill='%23888' font-size='36' text-anchor='middle'>SPA placeholder</text></svg>",
+    "url": "#"
   }
 ]

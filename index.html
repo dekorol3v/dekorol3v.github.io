@@ -14,7 +14,7 @@
   <header class="topbar" role="banner">
     <div class="topbar-inner">
       <div class="logo">
-        <img src="assets/logo.svg" alt="logo" width="36" height="36">
+        <img src="assets/logo.svg" alt="Логотип D. Sergeevich" width="36" height="36">
         <span class="logo-text">D. Sergeevich</span>
       </div>
 
@@ -95,13 +95,13 @@
   </div>
 
   <!-- Modal for project details -->
-  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-panel" role="document" aria-labelledby="modalTitle">
+    <div class="modal-panel" role="document">
       <button id="modalClose" class="modal-close" aria-label="Закрыть">✕</button>
       <h3 id="modalTitle"></h3>
       <p id="modalDesc" class="small muted"></p>
-      <div id="modalGallery" class="modal-gallery"></div>
+      <div id="modalGallery" class="modal-gallery" aria-live="polite"></div>
       <div style="margin-top:12px"><a id="modalLink" class="btn" href="#" target="_blank" rel="noopener">Открыть проект</a></div>
     </div>
   </div>
@@ -109,4 +109,3 @@
   <script src="scripts/main.js" defer></script>
 </body>
 </html>
-

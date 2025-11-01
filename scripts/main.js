@@ -1,8 +1,5 @@
-// main.js — particles + UI (robust and with fallbacks)
+// scripts/main.js — улучшенный particles + UI (debounce resize, Esc, focus-trap, perf tweak)
 
-// ------------------------
-// Particles system (lightweight, adaptive, always some effect even with reduced-motion)
-// ------------------------
 (function () {
   const canvas = document.getElementById('bg-canvas');
   if (!canvas) return;
@@ -12,25 +9,21 @@
   let particles = [];
   let animationId = null;
   let paused = false;
-  const mqReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-  const reducedMotion = !!(mqReduced && mqReduced.matches);
+  let resizeTimer = null;
+  let mqReduced = null;
+  let reducedMotion = false;
 
-  function resize() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = Math.max(1, canvas.clientWidth || window.innerWidth);
-    H = Math.max(1, canvas.clientHeight || window.innerHeight);
-    canvas.width = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    // adaptive count
-    const area = W * H;
-    let baseCount = Math.floor(area / 11000);
-    if (W < 720) baseCount = Math.min(baseCount, 18);
-    if (reducedMotion) baseCount = Math.min(baseCount, 10);
-    const count = Math.max(8, Math.min(baseCount, 120));
-    initParticles(count);
+  function updateReducedMotion() {
+    mqReduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)')) || null;
+    reducedMotion = !!(mqReduced && mqReduced.matches);
+  }
+  updateReducedMotion();
+  if (mqReduced && mqReduced.addEventListener) {
+    mqReduced.addEventListener('change', () => {
+      updateReducedMotion();
+      // on change, recompute particle intensity
+      resize();
+    });
   }
 
   function rand(min, max) { return Math.random() * (max - min) + min; }
@@ -49,6 +42,25 @@
     }
   }
 
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(1, canvas.clientWidth || window.innerWidth);
+    H = Math.max(1, canvas.clientHeight || window.innerHeight);
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    // adaptive count
+    const area = W * H;
+    let baseCount = Math.floor(area / 11000);
+    if (W < 720) baseCount = Math.min(baseCount, 18);
+    if (reducedMotion) baseCount = Math.min(baseCount, 10);
+    const count = Math.max(8, Math.min(baseCount, 120));
+    initParticles(count);
+  }
+
   function render() {
     if (paused) return;
     ctx.clearRect(0, 0, W, H);
@@ -60,6 +72,7 @@
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
+    // move & draw
     for (let p of particles) {
       p.x += p.vx;
       p.y += p.vy;
@@ -73,10 +86,15 @@
       ctx.fill();
     }
 
-    // optional connecting lines, lightweight
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i], b = particles[j];
+    // connecting lines (optimized): limit inner checks when many particles
+    const n = particles.length;
+    const connectionCap = n > 60 ? 40 : n; // if many particles, only check next 40 neighbors
+    for (let i = 0; i < n; i++) {
+      const a = particles[i];
+      // j upper bound to reduce O(n^2) checks when n large
+      const jLimit = Math.min(n, i + connectionCap);
+      for (let j = i + 1; j < jLimit; j++) {
+        const b = particles[j];
         const dx = a.x - b.x, dy = a.y - b.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 90) {
@@ -106,42 +124,62 @@
     paused = true;
   }
 
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 120);
+  });
+  window.addEventListener('orientationchange', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 160);
+  });
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stop(); else start();
   });
 
-  window.addEventListener('resize', () => resize());
-  window.addEventListener('orientationchange', () => resize());
-
+  // init
   resize();
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 720;
-  // if user prefers reduced motion, still run minimal effect (not completely off)
   if (!reducedMotion) {
     if (!isMobile) start();
     else { initParticles(Math.min(18, particles.length)); start(); }
   } else {
-    // reduced: very lightweight
     initParticles(Math.min(14, particles.length));
     start();
   }
+
+  // cleanup on unload
+  window.addEventListener('beforeunload', () => { stop(); particles = []; });
+
 })();
 
 
 // ------------------------
-// UI logic (safe, with fallbacks)
+// UI logic (safe, with focus-trap & Esc support)
 // ------------------------
 document.addEventListener('DOMContentLoaded', () => {
-  // set year safely
   const yearEl = document.getElementById('year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  // modal handlers (guarded)
   const modal = document.getElementById('modal');
   const modalBackdrop = document.getElementById('modalBackdrop');
   const modalClose = document.getElementById('modalClose');
-  function closeModal(){ if(modal) modal.setAttribute('aria-hidden','true'); }
+  let lastFocused = null;
+  let trapHandler = null;
+
+  function closeModal(){ 
+    if(!modal) return;
+    modal.setAttribute('aria-hidden','true'); 
+    document.body.style.overflow = ''; 
+    if(lastFocused && lastFocused.focus) lastFocused.focus();
+    // remove trap
+    if(trapHandler) { document.removeEventListener('keydown', trapHandler); trapHandler = null; }
+  }
+
   function openModal(project){
     if(!modal) return;
+    lastFocused = document.activeElement;
     modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
     const t = document.getElementById('modalTitle'); if(t) t.textContent = project.title || '';
     const d = document.getElementById('modalDesc'); if(d) d.textContent = project.description || '';
     const link = document.getElementById('modalLink'); if(link) link.href = project.url || '#';
@@ -151,9 +189,32 @@ document.addEventListener('DOMContentLoaded', () => {
     imgs.forEach(src => {
       const img = document.createElement('img'); img.src = src; img.alt = project.title || ''; gallery.appendChild(img);
     });
+    // focus first focusable (close button)
+    if(modalClose) modalClose.focus();
+
+    // focus trap: keep Tab inside modal
+    trapHandler = function(e) {
+      if(e.key !== 'Tab') return;
+      const focusable = modal.querySelectorAll('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])');
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', trapHandler);
   }
+
   if(modalClose) modalClose.addEventListener('click', closeModal);
   if(modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
+
+  // Esc closes modal globally
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeModal(); }
+  });
 
   // hero parallax (guard)
   const heroCard = document.getElementById('heroCard');
@@ -170,11 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
     heroCard.addEventListener('mouseleave', () => { heroImage.style.transform = `translate3d(0,0,0) scale(1) rotateZ(0)`; });
   }
 
-  // reveal on scroll with robust fallback
+  // reveal on scroll with fallback
   const revealEls = Array.from(document.querySelectorAll('.reveal'));
-  // hide them initially by adding class is-hidden (CSS handles transition)
   revealEls.forEach(el => el.classList.add('is-hidden'));
-
   const observer = ('IntersectionObserver' in window) ? new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -186,19 +245,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }, {threshold: 0.12}) : null;
 
   revealEls.forEach(el => {
-    // if element already visible in viewport, show immediately
     const rect = el.getBoundingClientRect();
     if (rect.top < (window.innerHeight || document.documentElement.clientHeight) - 40) {
       el.classList.add('in-view'); el.classList.remove('is-hidden');
     } else if (observer) {
       observer.observe(el);
     } else {
-      // no observer support -> still reveal
       el.classList.add('in-view'); el.classList.remove('is-hidden');
     }
   });
 
-  // load projects
+  // project rendering
   const grid = document.getElementById('projects-grid');
   function renderPlaceholders(n){
     if(!grid) return;
@@ -213,8 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="project-tags small muted">HTML • CSS • JS</div>
       `;
       grid.appendChild(card);
-      if (observer) observer.observe(card);
-      else card.classList.add('in-view');
+      if (observer) observer.observe(card); else card.classList.add('in-view');
     }
   }
 
@@ -235,7 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
       card.addEventListener('click', () => openModal(p));
       card.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(p); });
 
-      // hover image parallax
       const img = card.querySelector('img');
       if(img){
         card.addEventListener('mousemove', (ev) => {
@@ -249,14 +304,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       grid.appendChild(card);
-      if(observer) observer.observe(card);
-      else card.classList.add('in-view');
+      if(observer) observer.observe(card); else card.classList.add('in-view');
     });
   }
 
-  // try fetching projects.json — if fails show placeholders
   (function loadProjects(){
-    if(!grid){ return; }
+    if(!grid) return;
     fetch('data/projects.json', {cache: 'no-store'}).then(r => {
       if(!r.ok) throw new Error('no projects.json');
       return r.json();
@@ -269,5 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   })();
 
-  function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+  function escapeHtml(s){
+    if (s == null) return '';
+    const str = String(s);
+    // replaceAll may not exist in older browsers — fallback:
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 });

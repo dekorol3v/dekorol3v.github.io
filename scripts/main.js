@@ -21,7 +21,6 @@
   if (mqReduced && mqReduced.addEventListener) {
     mqReduced.addEventListener('change', () => {
       updateReducedMotion();
-      // on change, recompute particle intensity
       resize();
     });
   }
@@ -86,12 +85,11 @@
       ctx.fill();
     }
 
-    // connecting lines (optimized): limit inner checks when many particles
+    // connecting lines (optimized)
     const n = particles.length;
-    const connectionCap = n > 60 ? 40 : n; // if many particles, only check next 40 neighbors
+    const connectionCap = n > 60 ? 40 : n;
     for (let i = 0; i < n; i++) {
       const a = particles[i];
-      // j upper bound to reduce O(n^2) checks when n large
       const jLimit = Math.min(n, i + connectionCap);
       for (let j = i + 1; j < jLimit; j++) {
         const b = particles[j];
@@ -171,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.setAttribute('aria-hidden','true'); 
     document.body.style.overflow = ''; 
     if(lastFocused && lastFocused.focus) lastFocused.focus();
-    // remove trap
     if(trapHandler) { document.removeEventListener('keydown', trapHandler); trapHandler = null; }
   }
 
@@ -189,10 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
     imgs.forEach(src => {
       const img = document.createElement('img'); img.src = src; img.alt = project.title || ''; gallery.appendChild(img);
     });
-    // focus first focusable (close button)
     if(modalClose) modalClose.focus();
 
-    // focus trap: keep Tab inside modal
     trapHandler = function(e) {
       if(e.key !== 'Tab') return;
       const focusable = modal.querySelectorAll('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])');
@@ -211,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if(modalClose) modalClose.addEventListener('click', closeModal);
   if(modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
 
-  // Esc closes modal globally
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeModal(); }
   });
@@ -325,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function escapeHtml(s){
     if (s == null) return '';
     const str = String(s);
-    // replaceAll may not exist in older browsers — fallback:
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 });

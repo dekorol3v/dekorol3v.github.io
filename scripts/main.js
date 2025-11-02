@@ -183,6 +183,12 @@
     btn.style.zIndex = 120;
     btn.addEventListener('click', () => toggleParticles());
     document.body.appendChild(btn);
+
+    // make toggle visually indicate reduced-motion preference
+    if (reducedMotion) {
+      btn.style.opacity = '0.65';
+      btn.title = 'Частицы отключены или замедлены из-за системной настройки "уменьшить движение"';
+    }
   })();
 
   // ---- UI logic: hero, modal, projects, sidebar sync, achievements ----
@@ -251,22 +257,28 @@
     const modalBackdrop = document.getElementById('modalBackdrop');
     const modalClose = document.getElementById('modalClose');
     let lastFocused = null, trapHandler = null;
+    let previousBodyOverflow = '';
 
     function closeModal(){
       if(!modal) return;
       modal.setAttribute('aria-hidden','true');
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousBodyOverflow || '';
+      previousBodyOverflow = '';
       if(lastFocused && lastFocused.focus) lastFocused.focus();
-      if(trapHandler){ document.removeEventListener('keydown', trapHandler); trapHandler = null; }
+      if(trapHandler){ document.removeEventListener('keydown', trapHandler, {capture:true}); trapHandler = null; }
     }
     function openModal(project){
       if(!modal) return;
       lastFocused = document.activeElement;
       modal.setAttribute('aria-hidden','false');
+      previousBodyOverflow = document.body.style.overflow || '';
       document.body.style.overflow = 'hidden';
       const t = document.getElementById('modalTitle'); if(t) t.textContent = project.title || '';
       const d = document.getElementById('modalDesc'); if(d) d.textContent = project.description || '';
-      const link = document.getElementById('modalLink'); if(link) link.href = project.url || '#';
+      const link = document.getElementById('modalLink'); if(link) {
+        link.href = project.url || '#';
+        link.rel = 'noopener noreferrer';
+      }
       const gallery = document.getElementById('modalGallery'); if(!gallery) return;
       gallery.innerHTML = '';
       const imgs = (project.gallery && project.gallery.length) ? project.gallery : (project.cover ? [project.cover] : []);
@@ -274,14 +286,29 @@
         const img = document.createElement('img'); img.src = src; img.alt = project.title || ''; gallery.appendChild(img);
       });
       if(modalClose) modalClose.focus();
-      trapHandler = function(e){ if(e.key !== 'Tab') return;
-        const focusable = modal.querySelectorAll('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])');
-        if (!focusable || focusable.length === 0) return;
-        const first = focusable[0]; const last = focusable[focusable.length-1];
-        if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
-        else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+      trapHandler = function(e){
+        if (e.key !== 'Tab') return;
+        const focusable = Array.from(modal.querySelectorAll('a[href], button:not([disabled]), textarea, input:not([disabled]), select, [tabindex]:not([tabindex="-1"])'))
+          .filter(el => el && el.offsetParent !== null);
+        if (focusable.length === 0) {
+          e.preventDefault();
+          return;
+        }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first || document.activeElement === modal) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       };
-      document.addEventListener('keydown', trapHandler);
+      document.addEventListener('keydown', trapHandler, { capture: true });
     }
 
     if(modalClose) modalClose.addEventListener('click', closeModal);
@@ -319,18 +346,27 @@
     function renderPlaceholders(n){
       if(!grid) return;
       grid.innerHTML = '';
+      const frag = document.createDocumentFragment();
       for(let i=0;i<n;i++){
         const card = document.createElement('article');
-        card.className = 'project-card reveal';
-        card.innerHTML = `
-          <div class="project-thumb" aria-hidden="true"></div>
-          <h3 class="project-title">Название проекта</h3>
-          <p class="project-desc">Короткое описание проекта. Добавь реальные данные через admin.html.</p>
-          <div class="project-tags small muted">HTML • CSS • JS</div>
-        `;
-        grid.appendChild(card);
-        if (observer) observer.observe(card); else card.classList.add('in-view');
+        card.className = 'project-card reveal in-view';
+        // Note: accessibility: article kept as visual card. add aria-hidden for placeholders
+        card.setAttribute('aria-hidden', 'true');
+
+        const thumb = document.createElement('div'); thumb.className = 'project-thumb'; thumb.setAttribute('aria-hidden','true');
+
+        const title = document.createElement('h3'); title.className = 'project-title'; title.textContent = 'Название проекта';
+        const desc = document.createElement('p'); desc.className = 'project-desc'; desc.textContent = 'Короткое описание проекта. Добавь реальные данные через admin.html.';
+        const tags = document.createElement('div'); tags.className = 'project-tags small muted'; tags.textContent = 'HTML • CSS • JS';
+
+        card.appendChild(thumb);
+        card.appendChild(title);
+        card.appendChild(desc);
+        card.appendChild(tags);
+
+        frag.appendChild(card);
       }
+      grid.appendChild(frag);
       // ensure sidebar height sync after placeholders
       debouncedSync();
     }
@@ -352,33 +388,70 @@
     function renderProjects(projects){
       if(!grid) return;
       grid.innerHTML = '';
+
+      const frag = document.createDocumentFragment();
+
       projects.forEach((p) => {
         const card = document.createElement('article');
         card.className = 'project-card reveal';
-        const thumbHtml = p.cover ? `<img loading="lazy" src="${p.cover}" alt="${escapeHtml(p.title)}">` : `<div class="project-thumb" aria-hidden="true"></div>`;
-        card.innerHTML = `
-          <div class="project-thumb">${thumbHtml}</div>
-          <h3 class="project-title">${escapeHtml(p.title || 'Без названия')}</h3>
-          <p class="project-desc">${escapeHtml(p.description || '')}</p>
-          <div class="project-tags small muted">${Array.isArray(p.tags)? p.tags.map(escapeHtml).join(' • '): ''}</div>
-        `;
         card.tabIndex = 0;
-        card.addEventListener('click', () => openModal(p));
-        card.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(p); });
+        card.setAttribute('role', 'button');
+        // accessible name
+        card.setAttribute('aria-label', (p.title ? String(p.title) : 'Открыть проект'));
 
-        const img = card.querySelector('img');
-        if(img){
-          // subtle hover zoom on thumbnails
-          card.addEventListener('mouseover', () => img.style.transform = 'scale(1.02)');
-          card.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
+        // thumbnail container
+        const thumbWrap = document.createElement('div');
+        thumbWrap.className = 'project-thumb';
+        if (p.cover) {
+          const img = document.createElement('img');
+          img.loading = 'lazy';
+          img.src = p.cover;
+          img.alt = p.title || '';
           img.style.transition = 'transform .35s cubic-bezier(.2,.9,.2,1)';
-          // attach load/error to trigger layout sync
+          thumbWrap.appendChild(img);
+
+          // hover zoom
+          card.addEventListener('mouseover', () => { img.style.transform = 'scale(1.02)'; });
+          card.addEventListener('mouseleave', () => { img.style.transform = 'scale(1)'; });
+
           attachImageLoadHandlers(img);
+        } else {
+          // placeholder (keeps DOM consistent)
+          const ph = document.createElement('div');
+          ph.setAttribute('aria-hidden', 'true');
+          ph.style.height = '120px';
+          ph.className = 'project-thumb';
+          thumbWrap.appendChild(ph);
         }
 
-        grid.appendChild(card);
-        if(observer) observer.observe(card); else card.classList.add('in-view');
+        const title = document.createElement('h3');
+        title.className = 'project-title';
+        title.textContent = p.title || 'Без названия';
+
+        const desc = document.createElement('p');
+        desc.className = 'project-desc';
+        desc.textContent = p.description || '';
+
+        const tags = document.createElement('div');
+        tags.className = 'project-tags small muted';
+        if (Array.isArray(p.tags)) tags.textContent = p.tags.join(' • ');
+
+        // assemble
+        card.appendChild(thumbWrap);
+        card.appendChild(title);
+        card.appendChild(desc);
+        card.appendChild(tags);
+
+        // interactions
+        card.addEventListener('click', () => openModal(p));
+        card.addEventListener('keypress', (e) => { if (e.key === 'Enter') openModal(p); });
+
+        frag.appendChild(card);
+
+        if (observer) observer.observe(card); else card.classList.add('in-view');
       });
+
+      grid.appendChild(frag);
 
       // set hero to last project if exists
       try {
@@ -390,7 +463,10 @@
           }
           if (heroTitle) heroTitle.textContent = last.title || heroTitle.textContent;
           if (heroLead) heroLead.textContent = last.subtitle || last.description || heroLead.textContent;
-          if (heroPrimaryBtn && last.url) heroPrimaryBtn.href = last.url;
+          if (heroPrimaryBtn && last.url) {
+            heroPrimaryBtn.href = last.url;
+            heroPrimaryBtn.setAttribute('rel', 'noopener noreferrer');
+          }
         }
       } catch(e) {
         console.warn('Не удалось установить hero из последнего проекта', e);
@@ -430,7 +506,7 @@
       const track = document.getElementById('achievementsTrack');
       if(!track) return;
 
-      function waitImagesLoaded(container, timeout = 600) {
+      function waitImagesLoaded(container, timeout = 1200) {
         const imgs = Array.from(container.querySelectorAll('img'));
         if (imgs.length === 0) return Promise.resolve();
         return new Promise(resolve => {

@@ -1,4 +1,4 @@
-// Minimal particles + mobile nav (no toggle button)
+// Minimal particles + mobile nav + logo fallback
 (function(){
   // --- particles setup ---
   const canvas = document.getElementById('bg-canvas');
@@ -8,7 +8,7 @@
   let particles = [];
   let raf = null;
   let reduced = false;
-  let enabled = true; // always enabled; no UI toggle
+  let enabled = true;
 
   function updateReduced(){ reduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false; }
   updateReduced();
@@ -111,7 +111,28 @@
   resize();
   if (!reduced && enabled) start();
 
-  // --- mobile nav toggle (no particle toggle) ---
+  // --- logo fallback: если img не загрузится, показать текст -->
+  (function ensureLogoFallback(){
+    function init(){
+      const img = document.querySelector('.logo img');
+      const text = document.querySelector('.logo-text');
+      if (!img) { if (text) text.style.display = 'inline-block'; return; }
+
+      img.addEventListener('error', () => {
+        img.style.display = 'none';
+        if (text) text.style.display = 'inline-block';
+      }, { once: true });
+
+      if (img.complete) {
+        if (img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
+        else if (text) text.style.display = 'none';
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
+
+  // --- mobile nav toggle ---
   document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('mainNav');
     const toggle = document.getElementById('navToggle');

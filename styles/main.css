@@ -1,12 +1,12 @@
 :root{
-  --bg:#0B0D10;
+  --bg:#0b0e10;
   --text:#e6e8ea;
   --muted:#9da3a8;
   --accent:#2ec4ff;
-  --gap:22px;          /* чуть больший отступ для воздуха */
-  --nav-gap:26px;      /* расстояние между пунктами меню */
-  --nav-font-size:15px;/* увеличенный размер для навигации */
-  --header-height:64px;/* фиксированная высота шапки */
+  --gap:22px;
+  --nav-gap:26px;
+  --nav-font-size:15px;
+  --header-height:64px;
   --transition:200ms ease;
 }
 
@@ -33,7 +33,7 @@ body{
 :focus:not(:focus-visible){outline:none}
 :focus-visible{outline:3px solid rgba(46,196,255,0.14);outline-offset:3px;border-radius:6px}
 
-/* header full-width (menu occupies entire viewport width) */
+/* header full-width */
 .topbar{
   position:sticky;
   top:0;
@@ -44,8 +44,6 @@ body{
   width:100%;
   height: var(--header-height);
 }
-
-/* Important: make inner wrapper full-width and positioned relative so we can center nav absolutely */
 .topbar-inner{
   position:relative;
   display:block;
@@ -53,7 +51,7 @@ body{
   height:100%;
 }
 
-/* logo aligned to the left (fixed offset) */
+/* logo aligned left */
 .logo{
   position:absolute;
   left:20px;
@@ -62,17 +60,31 @@ body{
   display:flex;
   align-items:center;
   gap:12px;
-  z-index:50;
+  z-index:60;
 }
-.logo img{width:40px;height:40px;display:block}
-.logo-text{font-weight:700;color:var(--text);font-size:14px}
+/* ensure raster logo is visible and sized */
+.logo img{
+  display:block !important;
+  width:40px;
+  height:40px;
+  object-fit:contain;
+  -webkit-user-drag: none;
+}
+/* text fallback hidden by default; shown by JS only if img fails */
+.logo-text{
+  display:none;
+  color:var(--text);
+  font-weight:700;
+  font-size:14px;
+  user-select:none;
+}
 
-/* topnav is centered relative to viewport (not limited by any container) */
+/* topnav centered relative to viewport */
 .topnav{
   position:absolute;
   left:50%;
   top:50%;
-  transform:translate(-50%,-50%); /* truly center the nav horizontally & vertically in header */
+  transform:translate(-50%,-50%);
   display:flex;
   gap:var(--nav-gap);
   align-items:center;
@@ -80,7 +92,7 @@ body{
   pointer-events:auto;
 }
 
-/* nav links — larger, more prominent */
+/* nav links — larger */
 .topnav a{
   color:rgba(230,232,234,0.96);
   text-decoration:none;
@@ -98,7 +110,7 @@ body{
   transform:translateY(-2px);
 }
 
-/* place hamburger on the right */
+/* hamburger on the right */
 .nav-toggle{
   position:absolute;
   right:18px;
@@ -148,17 +160,15 @@ body{
 }
 .mobile-nav a:hover{background:rgba(255,255,255,0.02)}
 
-/* remove hero/extra visuals */
+/* main area (empty for now) */
 main[role="main"]{min-height:calc(100vh - var(--header-height));}
 
-/* responsive adjustments */
+/* responsive */
 @media (max-width:920px){
-  /* reduce spacing on smaller desktop/tablets */
   :root{--nav-gap:18px;--nav-font-size:14px}
 }
 
 @media (max-width:720px){
-  /* hide centered nav and show hamburger */
   .topnav{display:none}
   .nav-toggle{display:flex}
   .mobile-nav{display:none;flex-direction:column}

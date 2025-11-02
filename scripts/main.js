@@ -1,4 +1,5 @@
 // scripts/main.js — particles + UI (particle toggle, hero = last project, no parallax, sidebar sync)
+// + achievements slider, image load sync, logo fallback
 
 (function () {
   // ---- Particles subsystem ----
@@ -70,13 +71,16 @@
     if (!ctx || !particleEnabled || paused) return;
     ctx.clearRect(0, 0, W, H);
 
+    // subtle radial tint
     const g = ctx.createRadialGradient(W * 0.75, H * 0.25, 0, W * 0.75, H * 0.25, Math.max(W, H) * 0.8);
     g.addColorStop(0, 'rgba(46,196,255,0.01)');
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
-    for (let p of particles) {
+    const n = particles.length;
+    for (let i = 0; i < n; i++) {
+      const p = particles[i];
       p.x += p.vx;
       p.y += p.vy;
       if (p.x < -10) p.x = W + 10;
@@ -89,7 +93,7 @@
       ctx.fill();
     }
 
-    const n = particles.length;
+    // connections (cap per particle for performance)
     const connectionCap = n > 60 ? 40 : n;
     for (let i = 0; i < n; i++) {
       const a = particles[i];
@@ -170,9 +174,9 @@
     document.body.appendChild(btn);
   })();
 
-  // ---- UI logic: hero, modal, projects, sidebar sync ----
+  // ---- UI logic: hero, modal, projects, sidebar sync, achievements ----
   document.addEventListener('DOMContentLoaded', () => {
-    // Debounce util (used by sync)
+    // Debounce util
     function debounce(fn, wait=120){
       let t = null;
       return function(...args){
@@ -201,9 +205,26 @@
     window.addEventListener('resize', debouncedSync);
     window.addEventListener('orientationchange', debouncedSync);
 
+    // logo fallback: if logo image is missing or 404, replace with text
+    (function ensureLogo(){
+      const img = document.querySelector('.logo img');
+      const logoText = document.querySelector('.logo-text');
+      if(!img) return;
+      img.addEventListener('error', () => {
+        console.warn('Logo image failed to load — hiding img and showing text');
+        img.style.display = 'none';
+        if (logoText) logoText.style.display = 'inline-block';
+      });
+      // if image not loaded (cached missing), check naturalWidth
+      if (img.complete && img.naturalWidth === 0) {
+        img.dispatchEvent(new Event('error'));
+      }
+    })();
+
     // set year
     const yearEl = document.getElementById('year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+    // modal
     const modal = document.getElementById('modal');
     const modalBackdrop = document.getElementById('modalBackdrop');
     const modalClose = document.getElementById('modalClose');
@@ -292,6 +313,18 @@
       debouncedSync();
     }
 
+    function attachImageLoadHandlers(imgEl){
+      if(!imgEl) return;
+      // if image already loaded or errored, trigger sync immediately
+      function done(){ debouncedSync(); }
+      imgEl.addEventListener('load', done);
+      imgEl.addEventListener('error', () => {
+        console.warn('project thumbnail failed to load:', imgEl.src);
+        // keep placeholder but still sync
+        done();
+      });
+    }
+
     function renderProjects(projects){
       if(!grid) return;
       grid.innerHTML = '';
@@ -315,6 +348,8 @@
           card.addEventListener('mouseover', () => img.style.transform = 'scale(1.02)');
           card.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
           img.style.transition = 'transform .35s cubic-bezier(.2,.9,.2,1)';
+          // attach load/error to trigger layout sync
+          attachImageLoadHandlers(img);
         }
 
         grid.appendChild(card);
@@ -326,6 +361,7 @@
         if (Array.isArray(projects) && projects.length > 0) {
           const last = projects[projects.length - 1];
           if (heroImage && last.cover) {
+            // set background (no parallax)
             heroImage.style.backgroundImage = `linear-gradient(180deg, rgba(12,12,12,0.15), rgba(0,0,0,0.25)), url('${last.cover}')`;
           }
           if (heroTitle) heroTitle.textContent = last.title || heroTitle.textContent;
@@ -359,6 +395,73 @@
 
     // initial sync attempt after DOM ready
     setTimeout(debouncedSync, 60);
-  });
+
+    /* ---------- ACHIEVEMENTS: simple data + auto-scroll ---------- */
+    (function achievementsModule(){
+      const achievements = [
+        { id:'a1', title:'100+ UI screens', sub:'Дизайн интерфейсов', icon:'★' },
+        { id:'a2', title:'50+ проектов', sub:'Различных кейсов', icon:'✓' },
+        { id:'a3', title:'20k+ строк', sub:'Чистого кода', icon:'</>' },
+        { id:'a4', title:'Open-source', sub:'Проекты на GitHub', icon:'⬢' },
+        { id:'a5', title:'Конференции', sub:'Доклады и выступления', icon:'🎤' }
+      ];
+      const track = document.getElementById('achievementsTrack');
+      if(!track) return;
+
+      // build two rows for seamless loop
+      const rowA = document.createElement('div'); rowA.className = 'ach-row';
+      const rowB = document.createElement('div'); rowB.className = 'ach-row-copy';
+
+      function buildRow(row){
+        achievements.forEach(a => {
+          const el = document.createElement('div');
+          el.className = 'ach-item';
+          el.innerHTML = `<div class="ach-icon" aria-hidden="true">${a.icon}</div><div class="ach-text"><div class="ach-title">${a.title}</div><div class="ach-sub">${a.sub}</div></div>`;
+          row.appendChild(el);
+        });
+      }
+      buildRow(rowA); buildRow(rowB);
+
+      // append rows side by side
+      // wrap in container to allow scrollLeft control
+      track.innerHTML = '';
+      track.appendChild(rowA);
+      track.appendChild(rowB);
+
+      // auto-scroll logic
+      let scrollX = 0;
+      let widthLoop = rowA.scrollWidth || 1;
+      let pausedAch = false;
+      let lastTs = performance.now();
+
+      function step(ts){
+        if(pausedAch){ lastTs = ts; requestAnimationFrame(step); return; }
+        const delta = Math.min(40, ts - lastTs); lastTs = ts;
+        const speed = 18; // px per second; tweak if needed
+        scrollX += (speed * delta) / 1000;
+        if (scrollX >= widthLoop) scrollX -= widthLoop;
+        track.scrollLeft = Math.floor(scrollX);
+        requestAnimationFrame(step);
+      }
+
+      // start after layout stable
+      setTimeout(() => {
+        widthLoop = rowA.scrollWidth || 1;
+        requestAnimationFrame(step);
+      }, 80);
+
+      // pause on hover/touch
+      track.addEventListener('mouseenter', () => { pausedAch = true; });
+      track.addEventListener('mouseleave', () => { pausedAch = false; });
+      track.addEventListener('touchstart', () => { pausedAch = true; }, {passive:true});
+      track.addEventListener('touchend', () => { pausedAch = false; }, {passive:true});
+
+      // update measurements on resize
+      window.addEventListener('resize', debounce(() => {
+        widthLoop = rowA.scrollWidth || 1;
+      }, 160));
+    })();
+
+  }); // DOMContentLoaded end
 
 })(); // IIFE end

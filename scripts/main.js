@@ -1,6 +1,5 @@
 // scripts/main.js — particles + UI (particle toggle, hero = last project, no parallax, sidebar sync)
-// + achievements slider, image load sync, logo fallback
-
+// + achievements slider (fetch with fallback), image load sync, logo fallback
 (function () {
   // ---- Particles subsystem ----
   const canvas = document.getElementById('bg-canvas');
@@ -50,12 +49,14 @@
   function resizeParticles() {
     if (!canvas || !ctx) return;
     DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = Math.max(1, canvas.clientWidth || window.innerWidth);
-    H = Math.max(1, canvas.clientHeight || window.innerHeight);
+    // prefer client size, fallback to viewport
+    W = Math.max(1, (canvas.clientWidth || window.innerWidth));
+    H = Math.max(1, (canvas.clientHeight || window.innerHeight));
     canvas.width = Math.floor(W * DPR);
     canvas.height = Math.floor(H * DPR);
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
+    // ensure transform is set for DPR
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
     const area = W * H;
@@ -72,11 +73,15 @@
     ctx.clearRect(0, 0, W, H);
 
     // subtle radial tint
-    const g = ctx.createRadialGradient(W * 0.75, H * 0.25, 0, W * 0.75, H * 0.25, Math.max(W, H) * 0.8);
-    g.addColorStop(0, 'rgba(46,196,255,0.01)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
+    try {
+      const g = ctx.createRadialGradient(W * 0.75, H * 0.25, 0, W * 0.75, H * 0.25, Math.max(W, H) * 0.8);
+      g.addColorStop(0, 'rgba(46,196,255,0.01)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    } catch (e) {
+      /* fallback - ignore gradient errors */
+    }
 
     const n = particles.length;
     for (let i = 0; i < n; i++) {
@@ -138,7 +143,10 @@
     console.info('Particles enabled:', particleEnabled);
     if (particleEnabled) startParticles(); else stopParticles();
     const btn = document.getElementById('particleToggleBtn');
-    if (btn) btn.textContent = particleEnabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ';
+    if (btn) {
+      btn.textContent = particleEnabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ';
+      btn.setAttribute('aria-pressed', particleEnabled ? 'true' : 'false');
+    }
   }
 
   try {
@@ -156,9 +164,9 @@
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 720;
   if (!reducedMotion) {
     if (!isMobile) startParticles();
-    else { initParticles(Math.min(18, particles.length)); startParticles(); }
+    else { initParticles(Math.min(18, 18)); startParticles(); } // fixed: use number, not particles.length
   } else {
-    initParticles(Math.min(12, particles.length));
+    initParticles(Math.min(12, 12));
     startParticles();
   }
 
@@ -168,6 +176,9 @@
     const btn = document.createElement('button');
     btn.id = 'particleToggleBtn';
     btn.type = 'button';
+    btn.className = 'particle-toggle';
+    btn.setAttribute('aria-label', 'Включить или выключить частицы на фоне');
+    btn.setAttribute('aria-pressed', particleEnabled ? 'true' : 'false');
     btn.textContent = particleEnabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ';
     btn.style.zIndex = 120;
     btn.addEventListener('click', () => toggleParticles());
@@ -323,6 +334,8 @@
         // keep placeholder but still sync
         done();
       });
+      // handle already-complete images
+      if (imgEl.complete) done();
     }
 
     function renderProjects(projects){
@@ -396,9 +409,9 @@
     // initial sync attempt after DOM ready
     setTimeout(debouncedSync, 60);
 
-    /* ---------- ACHIEVEMENTS: simple data + auto-scroll ---------- */
+    /* ---------- ACHIEVEMENTS: fetch data/achievements.json with fallback to defaults ---------- */
     (function achievementsModule(){
-      const achievements = [
+      const defaultAchievements = [
         { id:'a1', title:'100+ UI screens', sub:'Дизайн интерфейсов', icon:'★' },
         { id:'a2', title:'50+ проектов', sub:'Различных кейсов', icon:'✓' },
         { id:'a3', title:'20k+ строк', sub:'Чистого кода', icon:'</>' },
@@ -408,58 +421,67 @@
       const track = document.getElementById('achievementsTrack');
       if(!track) return;
 
-      // build two rows for seamless loop
-      const rowA = document.createElement('div'); rowA.className = 'ach-row';
-      const rowB = document.createElement('div'); rowB.className = 'ach-row-copy';
-
-      function buildRow(row){
-        achievements.forEach(a => {
-          const el = document.createElement('div');
-          el.className = 'ach-item';
-          el.innerHTML = `<div class="ach-icon" aria-hidden="true">${a.icon}</div><div class="ach-text"><div class="ach-title">${a.title}</div><div class="ach-sub">${a.sub}</div></div>`;
-          row.appendChild(el);
+      function buildRows(items){
+        const rowA = document.createElement('div'); rowA.className = 'ach-row';
+        const rowB = document.createElement('div'); rowB.className = 'ach-row-copy';
+        items.forEach(a => {
+          const item = document.createElement('div');
+          item.className = 'ach-item';
+          // support svg path or simple emoji/text
+          let iconHtml = '';
+          if (a.icon && typeof a.icon === 'string' && a.icon.startsWith('assets/')) {
+            iconHtml = `<img src="${a.icon}" alt="" style="width:36px;height:36px;object-fit:contain">`;
+          } else {
+            iconHtml = `<div class="ach-icon" aria-hidden="true">${a.icon || '★'}</div>`;
+          }
+          item.innerHTML = `${iconHtml}<div class="ach-text"><div class="ach-title">${a.title}</div><div class="ach-sub">${a.sub || ''}</div></div>`;
+          rowA.appendChild(item.cloneNode(true));
+          rowB.appendChild(item);
         });
-      }
-      buildRow(rowA); buildRow(rowB);
-
-      // append rows side by side
-      // wrap in container to allow scrollLeft control
-      track.innerHTML = '';
-      track.appendChild(rowA);
-      track.appendChild(rowB);
-
-      // auto-scroll logic
-      let scrollX = 0;
-      let widthLoop = rowA.scrollWidth || 1;
-      let pausedAch = false;
-      let lastTs = performance.now();
-
-      function step(ts){
-        if(pausedAch){ lastTs = ts; requestAnimationFrame(step); return; }
-        const delta = Math.min(40, ts - lastTs); lastTs = ts;
-        const speed = 18; // px per second; tweak if needed
-        scrollX += (speed * delta) / 1000;
-        if (scrollX >= widthLoop) scrollX -= widthLoop;
-        track.scrollLeft = Math.floor(scrollX);
-        requestAnimationFrame(step);
+        track.innerHTML = '';
+        track.appendChild(rowA);
+        track.appendChild(rowB);
+        return { rowA, rowB };
       }
 
-      // start after layout stable
-      setTimeout(() => {
-        widthLoop = rowA.scrollWidth || 1;
-        requestAnimationFrame(step);
-      }, 80);
+      function startLoop(rowA){
+        let scrollX = 0;
+        let widthLoop = rowA.scrollWidth || 1;
+        let pausedAch = false;
+        let lastTs = performance.now();
+        function step(ts){
+          if(pausedAch){ lastTs = ts; requestAnimationFrame(step); return; }
+          const delta = Math.min(40, ts - lastTs); lastTs = ts;
+          const speed = 18; // px per second
+          scrollX += (speed * delta) / 1000;
+          if (scrollX >= widthLoop) scrollX -= widthLoop;
+          track.scrollLeft = Math.floor(scrollX);
+          requestAnimationFrame(step);
+        }
+        setTimeout(()=>{ widthLoop = rowA.scrollWidth || 1; requestAnimationFrame(step); }, 80);
+        track.addEventListener('mouseenter', ()=>{ pausedAch = true; });
+        track.addEventListener('mouseleave', ()=>{ pausedAch = false; });
+        track.addEventListener('touchstart', ()=>{ pausedAch = true; }, {passive:true});
+        track.addEventListener('touchend', ()=>{ pausedAch = false; }, {passive:true});
+        window.addEventListener('resize', debounce(()=>{ widthLoop = rowA.scrollWidth || 1; }, 160));
+      }
 
-      // pause on hover/touch
-      track.addEventListener('mouseenter', () => { pausedAch = true; });
-      track.addEventListener('mouseleave', () => { pausedAch = false; });
-      track.addEventListener('touchstart', () => { pausedAch = true; }, {passive:true});
-      track.addEventListener('touchend', () => { pausedAch = false; }, {passive:true});
-
-      // update measurements on resize
-      window.addEventListener('resize', debounce(() => {
-        widthLoop = rowA.scrollWidth || 1;
-      }, 160));
+      // try to fetch JSON and fallback to defaults
+      fetch('data/achievements.json', { cache: 'no-store' })
+        .then(r => {
+          if (!r.ok) throw new Error('no achievements.json');
+          return r.json();
+        })
+        .then(data => {
+          if (!Array.isArray(data) || data.length === 0) data = defaultAchievements;
+          const { rowA } = buildRows(data);
+          startLoop(rowA);
+        })
+        .catch(err => {
+          console.info('achievements.json not found or failed — using defaults', err);
+          const { rowA } = buildRows(defaultAchievements);
+          startLoop(rowA);
+        });
     })();
 
   }); // DOMContentLoaded end

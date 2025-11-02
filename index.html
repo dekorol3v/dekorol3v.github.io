@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
+  <!-- Skip link for keyboard users -->
+  <a class="skip-link" href="#main">Пропустить навигацию</a>
+
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <header class="topbar" role="banner">
@@ -78,7 +81,8 @@
             <p class="small muted">Ниже — карточки проектов. Нажмите на карточку для подробностей.</p>
           </div>
 
-          <div id="projects-grid" class="projects-grid" aria-live="polite">
+          <!-- role="list" помогает скринридерам понимать коллекцию -->
+          <div id="projects-grid" class="projects-grid" aria-live="polite" role="list">
             <!-- Project cards rendered by scripts/main.js -->
           </div>
         </section>
@@ -93,7 +97,7 @@
             <div>
               <h3>Контакты</h3>
               <p>Email: <a href="mailto:your@email.example">your@email.example</a></p>
-              <p>Telegram: <a href="https://t.me/yourtg" target="_blank" rel="noopener">yourtg</a></p>
+              <p>Telegram: <a href="https://t.me/yourtg" target="_blank" rel="noopener noreferrer">yourtg</a></p>
             </div>
             <small class="small muted">Сайт собран на HTML/CSS/JS — данные загружаются из <code>data/projects.json</code>.</small>
           </div>
@@ -109,7 +113,10 @@
       <h3 id="modalTitle"></h3>
       <p id="modalDesc" class="small muted"></p>
       <div id="modalGallery" class="modal-gallery"></div>
-      <div style="margin-top:12px"><a id="modalLink" class="btn" href="#" target="_blank" rel="noopener">Открыть проект</a></div>
+      <div style="margin-top:12px">
+        <!-- rel установлен по умолчанию; JS может устанавливать target когда нужно -->
+        <a id="modalLink" class="btn" href="#" rel="noopener noreferrer">Открыть проект</a>
+      </div>
     </div>
   </div>
 

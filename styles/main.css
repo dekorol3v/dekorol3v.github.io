@@ -13,8 +13,8 @@
   --glass-bg: rgba(255,255,255,0.03);
   --transition-fast: 140ms;
   --transition: 220ms cubic-bezier(.2,.9,.2,1);
-  --card-shadow: 0 8px 28px rgba(0,0,0,0.55);
-  --card-shadow-hover: 0 20px 48px rgba(0,0,0,0.55);
+  --card-shadow: 0 6px 20px rgba(0,0,0,0.55); /* немного помягчил */
+  --card-shadow-hover: 0 16px 38px rgba(0,0,0,0.52); /* чуть легче чем было */
 }
 
 /* canvas bg */
@@ -144,6 +144,40 @@ body{
   padding:10px 18px;
 }
 
+/* achievements: new section (horizontal auto-scroll / slider) */
+.achievements-section{margin:20px 0}
+.achievements-track{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  overflow:hidden;
+  padding:10px;
+  border-radius:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  border:1px solid rgba(255,255,255,0.02);
+  box-shadow: var(--card-shadow);
+  position:relative;
+  /* allow inner duplicated rows for smooth loop */
+}
+.ach-row, .ach-row-copy{display:flex;gap:12px}
+.ach-item{
+  flex:0 0 auto;
+  width:220px;
+  height:88px;
+  border-radius:10px;
+  padding:12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  border:1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+.ach-icon{width:56px;height:56px;border-radius:8px;background:#0f1315;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);font-size:18px}
+.ach-text{font-size:14px;display:flex;flex-direction:column}
+.ach-title{font-weight:700;margin-bottom:4px}
+.ach-sub{color:var(--muted);font-size:13px}
+
 /* projects */
 .section-head{display:flex;flex-direction:column;gap:6px}
 .projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:12px}
@@ -202,6 +236,10 @@ body{
   .topnav{display:none}
   .hero-content{padding:20px}
   .hero-title{font-size:26px}
+  /* achievements responsive: make scrollable on small screens */
+  .achievements-track{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .ach-row, .ach-row-copy{display:flex}
+  .ach-item{flex:0 0 200px}
 }
 
 /* images fallback */

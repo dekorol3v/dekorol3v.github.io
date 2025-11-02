@@ -3,10 +3,11 @@
   --text:#e6e8ea;
   --muted:#9da3a8;
   --accent:#2ec4ff;
+
   --gap:22px;
-  --nav-gap:26px;
-  --nav-font-size:15px;
-  --header-height:64px;
+  --nav-gap:34px;         /* увеличено расстояние между пунктами меню */
+  --nav-font-size:16px;   /* чуть больше шрифт для меню */
+  --header-height:72px;   /* чуть выше шапка для баланса */
   --transition:200ms ease;
 }
 
@@ -54,32 +55,33 @@ body{
 /* logo aligned left */
 .logo{
   position:absolute;
-  left:20px;
+  left:28px; /* немного больше отступа слева */
   top:50%;
   transform:translateY(-50%);
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:14px;
   z-index:60;
 }
-/* ensure raster logo is visible and sized */
 .logo img{
   display:block !important;
-  width:40px;
-  height:40px;
+  width:44px;   /* чуть больше для гармонии */
+  height:44px;
   object-fit:contain;
   -webkit-user-drag: none;
 }
-/* text fallback hidden by default; shown by JS only if img fails */
 .logo-text{
-  display:none;
+  display:block;               /* показываем подпись по умолчанию */
   color:var(--text);
-  font-weight:700;
-  font-size:14px;
+  font-weight:800;             /* пожирнее */
+  font-size:16px;              /* чуть больше */
+  letter-spacing:0.2px;
   user-select:none;
+  line-height:1;
+  margin-left:2px;
 }
 
-/* topnav centered relative to viewport */
+/* topnav centered relative to viewport (not container) */
 .topnav{
   position:absolute;
   left:50%;
@@ -92,15 +94,15 @@ body{
   pointer-events:auto;
 }
 
-/* nav links — larger */
+/* nav links — более крупные и "приподнятые" по hover */
 .topnav a{
   color:rgba(230,232,234,0.96);
   text-decoration:none;
-  padding:10px 12px;
+  padding:12px 14px;           /* увеличен padding для более тяжёлого вида */
   border-radius:10px;
   transition:background var(--transition), color var(--transition), transform var(--transition);
   font-size:var(--nav-font-size);
-  font-weight:600;
+  font-weight:700;
   display:inline-block;
 }
 .topnav a:hover,
@@ -156,7 +158,7 @@ body{
   border-radius:8px;
   color:var(--text);
   text-decoration:none;
-  font-weight:600;
+  font-weight:700;
 }
 .mobile-nav a:hover{background:rgba(255,255,255,0.02)}
 
@@ -165,7 +167,8 @@ main[role="main"]{min-height:calc(100vh - var(--header-height));}
 
 /* responsive */
 @media (max-width:920px){
-  :root{--nav-gap:18px;--nav-font-size:14px}
+  :root{--nav-gap:24px;--nav-font-size:15px}
+  .logo{left:20px;}
 }
 
 @media (max-width:720px){

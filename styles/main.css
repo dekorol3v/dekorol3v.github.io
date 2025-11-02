@@ -5,9 +5,9 @@
   --accent:#2ec4ff;
 
   --gap:22px;
-  --nav-gap:34px;         /* увеличено расстояние между пунктами меню */
-  --nav-font-size:16px;   /* чуть больше шрифт для меню */
-  --header-height:72px;   /* чуть выше шапка для баланса */
+  --nav-gap:34px;
+  --nav-font-size:16px;
+  --header-height:72px;
   --transition:200ms ease;
 }
 
@@ -55,7 +55,7 @@ body{
 /* logo aligned left */
 .logo{
   position:absolute;
-  left:28px; /* немного больше отступа слева */
+  left:28px;
   top:50%;
   transform:translateY(-50%);
   display:flex;
@@ -65,16 +65,17 @@ body{
 }
 .logo img{
   display:block !important;
-  width:44px;   /* чуть больше для гармонии */
+  width:44px;
   height:44px;
   object-fit:contain;
   -webkit-user-drag: none;
 }
+/* Логотипный текст теперь всегда виден — вариант A */
 .logo-text{
-  display:block;               /* показываем подпись по умолчанию */
+  display:block;
   color:var(--text);
-  font-weight:800;             /* пожирнее */
-  font-size:16px;              /* чуть больше */
+  font-weight:800;
+  font-size:16px;
   letter-spacing:0.2px;
   user-select:none;
   line-height:1;
@@ -98,7 +99,7 @@ body{
 .topnav a{
   color:rgba(230,232,234,0.96);
   text-decoration:none;
-  padding:12px 14px;           /* увеличен padding для более тяжёлого вида */
+  padding:12px 14px;
   border-radius:10px;
   transition:background var(--transition), color var(--transition), transform var(--transition);
   font-size:var(--nav-font-size);

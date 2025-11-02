@@ -1,4 +1,4 @@
-// Minimal particles + mobile nav + logo fallback
+// Minimal particles + mobile nav + logo fallback (вариант A: текст всегда виден)
 (function(){
   // --- particles setup ---
   const canvas = document.getElementById('bg-canvas');
@@ -111,21 +111,21 @@
   resize();
   if (!reduced && enabled) start();
 
-  // --- logo fallback: если img не загрузится, показать текст -->
+  // --- logo fallback: если img не загрузится, спрячем img, но НЕ скрываем текст -->
   (function ensureLogoFallback(){
     function init(){
       const img = document.querySelector('.logo img');
       const text = document.querySelector('.logo-text');
-      if (!img) { if (text) text.style.display = 'inline-block'; return; }
+      if (!img) { if (text) text.style.display = 'block'; return; }
 
       img.addEventListener('error', () => {
-        img.style.display = 'none';
-        if (text) text.style.display = 'inline-block';
+        try { img.style.display = 'none'; } catch(e){}
+        if (text) text.style.display = 'block';
       }, { once: true });
 
       if (img.complete) {
         if (img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
-        else if (text) text.style.display = 'none';
+        else if (text) text.style.display = 'block'; // keep text visible always (variant A)
       }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

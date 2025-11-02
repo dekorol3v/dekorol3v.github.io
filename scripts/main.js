@@ -164,9 +164,9 @@
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 720;
   if (!reducedMotion) {
     if (!isMobile) startParticles();
-    else { initParticles(Math.min(18, 18)); startParticles(); } // fixed: use number, not particles.length
+    else { initParticles(18); startParticles(); } // fixed: use number directly
   } else {
-    initParticles(Math.min(12, 12));
+    initParticles(12);
     startParticles();
   }
 
@@ -187,6 +187,17 @@
 
   // ---- UI logic: hero, modal, projects, sidebar sync, achievements ----
   document.addEventListener('DOMContentLoaded', () => {
+    // small HTML-escape helper (used for achievements and other text insertions)
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // Debounce util
     function debounce(fn, wait=120){
       let t = null;
@@ -349,7 +360,7 @@
           <div class="project-thumb">${thumbHtml}</div>
           <h3 class="project-title">${escapeHtml(p.title || 'Без названия')}</h3>
           <p class="project-desc">${escapeHtml(p.description || '')}</p>
-          <div class="project-tags small muted">${Array.isArray(p.tags)? p.tags.join(' • '): ''}</div>
+          <div class="project-tags small muted">${Array.isArray(p.tags)? p.tags.map(escapeHtml).join(' • '): ''}</div>
         `;
         card.tabIndex = 0;
         card.addEventListener('click', () => openModal(p));
@@ -404,8 +415,6 @@
       });
     })();
 
-    function escapeHtml(s){ if (s == null) return ''; const str = String(s); return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
     // initial sync attempt after DOM ready
     setTimeout(debouncedSync, 60);
 
@@ -421,6 +430,24 @@
       const track = document.getElementById('achievementsTrack');
       if(!track) return;
 
+      function waitImagesLoaded(container, timeout = 600) {
+        const imgs = Array.from(container.querySelectorAll('img'));
+        if (imgs.length === 0) return Promise.resolve();
+        return new Promise(resolve => {
+          let remaining = imgs.length;
+          let done = () => {
+            if (--remaining <= 0) resolve();
+          };
+          imgs.forEach(img => {
+            if (img.complete) { done(); return; }
+            img.addEventListener('load', done, { once: true });
+            img.addEventListener('error', done, { once: true });
+          });
+          // timeout fallback
+          setTimeout(resolve, timeout);
+        });
+      }
+
       function buildRows(items){
         const rowA = document.createElement('div'); rowA.className = 'ach-row';
         const rowB = document.createElement('div'); rowB.className = 'ach-row-copy';
@@ -430,11 +457,16 @@
           // support svg path or simple emoji/text
           let iconHtml = '';
           if (a.icon && typeof a.icon === 'string' && a.icon.startsWith('assets/')) {
-            iconHtml = `<img src="${a.icon}" alt="" style="width:36px;height:36px;object-fit:contain">`;
+            iconHtml = `<img src="${escapeHtml(a.icon)}" alt="" style="width:36px;height:36px;object-fit:contain">`;
           } else {
-            iconHtml = `<div class="ach-icon" aria-hidden="true">${a.icon || '★'}</div>`;
+            // escape title/sub separately; icon is typically small emoji or symbol
+            iconHtml = `<div class="ach-icon" aria-hidden="true">${escapeHtml(a.icon || '★')}</div>`;
           }
-          item.innerHTML = `${iconHtml}<div class="ach-text"><div class="ach-title">${a.title}</div><div class="ach-sub">${a.sub || ''}</div></div>`;
+          // escape text fields
+          const safeTitle = escapeHtml(a.title || '');
+          const safeSub = escapeHtml(a.sub || '');
+          item.innerHTML = `${iconHtml}<div class="ach-text"><div class="ach-title">${safeTitle}</div><div class="ach-sub">${safeSub}</div></div>`;
+          // append a clone to rowA and original to rowB (two rows for seamless loop)
           rowA.appendChild(item.cloneNode(true));
           rowB.appendChild(item);
         });
@@ -445,20 +477,27 @@
       }
 
       function startLoop(rowA){
-        let scrollX = 0;
+        // start safe: reset scroll to 0 to avoid jumps
+        track.scrollLeft = 0;
+        let scrollX = track.scrollLeft || 0;
         let widthLoop = rowA.scrollWidth || 1;
         let pausedAch = false;
         let lastTs = performance.now();
+        const speed = 14; // px per second — чуть помедленнее для более приятного эффекта
+
         function step(ts){
           if(pausedAch){ lastTs = ts; requestAnimationFrame(step); return; }
           const delta = Math.min(40, ts - lastTs); lastTs = ts;
-          const speed = 18; // px per second
           scrollX += (speed * delta) / 1000;
           if (scrollX >= widthLoop) scrollX -= widthLoop;
+          // assign integer scrollLeft to avoid sub-pixel jitter
           track.scrollLeft = Math.floor(scrollX);
           requestAnimationFrame(step);
         }
-        setTimeout(()=>{ widthLoop = rowA.scrollWidth || 1; requestAnimationFrame(step); }, 80);
+
+        // recalc after layout stable
+        setTimeout(()=>{ widthLoop = rowA.scrollWidth || 1; requestAnimationFrame(step); }, 60);
+
         track.addEventListener('mouseenter', ()=>{ pausedAch = true; });
         track.addEventListener('mouseleave', ()=>{ pausedAch = false; });
         track.addEventListener('touchstart', ()=>{ pausedAch = true; }, {passive:true});
@@ -475,16 +514,16 @@
         .then(data => {
           if (!Array.isArray(data) || data.length === 0) data = defaultAchievements;
           const { rowA } = buildRows(data);
-          startLoop(rowA);
+          // wait for any images inside the built rows to load, then start loop
+          waitImagesLoaded(rowA).then(()=> startLoop(rowA));
         })
         .catch(err => {
           console.info('achievements.json not found or failed — using defaults', err);
           const { rowA } = buildRows(defaultAchievements);
-          startLoop(rowA);
+          waitImagesLoaded(rowA).then(()=> startLoop(rowA));
         });
     })();
 
   }); // DOMContentLoaded end
 
 })(); // IIFE end
-

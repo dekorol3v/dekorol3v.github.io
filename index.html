@@ -16,7 +16,16 @@
   <header class="topbar" role="banner">
     <div class="topbar-inner">
       <div class="logo" aria-hidden="false">
-        <img src="assets/logo.svg" alt="D. Sergeevich logo" width="36" height="36">
+        <!-- Растровый логотип: assets/logo.png и опционально assets/logo@2x.png -->
+        <img
+          src="assets/logo.png"
+          srcset="assets/logo.png 1x, assets/logo@2x.png 2x"
+          alt="D. Sergeevich"
+          width="40"
+          height="40"
+          loading="eager"
+        >
+        <!-- текст-фолбэк: скрывается по умолчанию, показывается только если img упадёт -->
         <span class="logo-text">D. Sergeevich</span>
       </div>
 

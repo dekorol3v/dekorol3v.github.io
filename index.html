@@ -16,7 +16,6 @@
   <header class="topbar" role="banner">
     <div class="topbar-inner">
       <div class="logo" aria-hidden="false">
-        <!-- Растровый логотип: assets/logo.png и опционально assets/logo@2x.png -->
         <img
           src="assets/logo.png"
           srcset="assets/logo.png 1x, assets/logo@2x.png 2x"
@@ -25,7 +24,6 @@
           height="44"
           loading="eager"
         >
-        <!-- текст рядом с логотипом: теперь виден всегда -->
         <span class="logo-text">D. Sergeevich</span>
       </div>
 
@@ -42,8 +40,49 @@
     </div>
   </header>
 
-  <main id="main" role="main" aria-hidden="true">
-    <!-- пустой основной контент — пока только фон и меню -->
+  <!-- MAIN LAYOUT: sidebar (profile) + last project card -->
+  <main id="main" role="main" class="page-wrap">
+    <div class="layout">
+      <aside class="sidebar" id="profileCard" aria-label="Профиль">
+        <div class="sidebar-inner">
+          <div class="profile-top">
+            <img class="profile-avatar" src="assets/avatar.jpg" alt="Аватар" onerror="this.style.display='none'">
+            <div class="profile-text">
+              <div class="profile-name">Твоё имя</div>
+              <div class="profile-role">Фронтенд / Дизайн</div>
+            </div>
+          </div>
+
+          <nav class="side-links" aria-label="Навигация профиля">
+            <a href="#projects">Портфолио</a>
+            <a href="#about">О себе</a>
+            <a href="#contacts">Контакты</a>
+          </nav>
+
+          <div class="sidebar-footer">
+            <small>© <span id="year"></span> Твоё имя</small>
+          </div>
+        </div>
+      </aside>
+
+      <section class="last-project" id="lastProject" aria-label="Последний проект">
+        <!-- Заполнится JS — если projects.json есть, возьмём последний элемент, иначе покажем placeholder -->
+        <article class="project-card">
+          <div class="project-thumb" aria-hidden="true">
+            <!-- placeholder background (вместо img) -->
+            <div class="thumb-placeholder">Project image</div>
+          </div>
+          <div class="project-body">
+            <h3 class="project-title">Последний проект</h3>
+            <p class="project-desc">Здесь появится информация о последнем проекте. Если у вас есть data/projects.json — карточка заполнится автоматически.</p>
+            <div class="project-meta">HTML • CSS • JS</div>
+            <div class="project-actions">
+              <a class="btn btn-primary" id="projectOpen" href="#" target="_blank" rel="noopener">Открыть проект</a>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
   </main>
 
   <script src="scripts/main.js" defer></script>

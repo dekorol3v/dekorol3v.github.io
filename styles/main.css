@@ -1,5 +1,5 @@
 :root{
-  --bg:#06080B;
+  --bg:#0b0e10;
   --text:#e6e8ea;
   --muted:#9da3a8;
   --accent:#2ec4ff;
@@ -9,9 +9,11 @@
   --nav-font-size:16px;
   --header-height:72px;
   --transition:200ms ease;
+  --max-content-width:1200px;
+  --sidebar-width:300px;
 }
 
-/* reset & base */
+/* общий сброс / базовые правила (оставляем предыдущие) */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -26,15 +28,7 @@ body{
 /* canvas background */
 #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block}
 
-/* skip link */
-.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-.skip-link:focus{left:12px;top:12px;width:auto;height:auto;padding:8px 12px;background:#fff;color:#000;border-radius:6px;z-index:210}
-
-/* focus-visible */
-:focus:not(:focus-visible){outline:none}
-:focus-visible{outline:3px solid rgba(46,196,255,0.14);outline-offset:3px;border-radius:6px}
-
-/* header full-width */
+/* header (как было ранее) */
 .topbar{
   position:sticky;
   top:0;
@@ -45,142 +39,97 @@ body{
   width:100%;
   height: var(--header-height);
 }
-.topbar-inner{
-  position:relative;
-  display:block;
-  width:100%;
-  height:100%;
-}
-
-/* logo aligned left */
-.logo{
-  position:absolute;
-  left:28px;
-  top:50%;
-  transform:translateY(-50%);
-  display:flex;
-  align-items:center;
-  gap:14px;
-  z-index:60;
-}
-.logo img{
-  display:block !important;
-  width:44px;
-  height:44px;
-  object-fit:contain;
-  -webkit-user-drag: none;
-}
-/* Логотипный текст теперь всегда виден — вариант A */
-.logo-text{
-  display:block;
-  color:var(--text);
-  font-weight:800;
-  font-size:16px;
-  letter-spacing:0.2px;
-  user-select:none;
-  line-height:1;
-  margin-left:2px;
-}
-
-/* topnav centered relative to viewport (not container) */
-.topnav{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  display:flex;
-  gap:var(--nav-gap);
-  align-items:center;
-  z-index:40;
-  pointer-events:auto;
-}
-
-/* nav links — более крупные и "приподнятые" по hover */
-.topnav a{
-  color:rgba(230,232,234,0.96);
-  text-decoration:none;
-  padding:12px 14px;
-  border-radius:10px;
-  transition:background var(--transition), color var(--transition), transform var(--transition);
-  font-size:var(--nav-font-size);
-  font-weight:700;
-  display:inline-block;
-}
-.topnav a:hover,
-.topnav a:focus{
-  background:rgba(255,255,255,0.04);
-  color:#fff;
-  transform:translateY(-2px);
-}
-
-/* hamburger on the right */
-.nav-toggle{
-  position:absolute;
-  right:18px;
-  top:50%;
-  transform:translateY(-50%);
-  display:none;
-  background:transparent;
-  border:0;
-  width:44px;height:44px;border-radius:8px;
-  align-items:center;justify-content:center;
-  cursor:pointer;
-  z-index:60;
-}
-.nav-toggle:focus{outline:2px solid rgba(46,196,255,0.12);outline-offset:3px}
-.hamburger{
-  display:inline-block;
-  width:22px;height:2px;background:var(--text);
-  position:relative;border-radius:2px;
-}
-.hamburger::before,.hamburger::after{
-  content:"";position:absolute;left:0;width:22px;height:2px;background:var(--text);border-radius:2px;transition:transform 160ms ease, top 160ms ease, opacity 160ms ease;
-}
+.topbar-inner{position:relative;display:block;width:100%;height:100%}
+.logo{position:absolute;left:28px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:14px;z-index:60}
+.logo img{display:block !important;width:44px;height:44px;object-fit:contain;-webkit-user-drag:none}
+.logo-text{display:block;color:var(--text);font-weight:800;font-size:16px;letter-spacing:0.2px;user-select:none;line-height:1;margin-left:2px}
+.topnav{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:var(--nav-gap);align-items:center;z-index:40}
+.topnav a{color:rgba(230,232,234,0.96);text-decoration:none;padding:12px 14px;border-radius:10px;transition:background var(--transition), color var(--transition), transform var(--transition);font-size:var(--nav-font-size);font-weight:700;display:inline-block}
+.topnav a:hover,.topnav a:focus{background:rgba(255,255,255,0.04);color:#fff;transform:translateY(-2px)}
+.nav-toggle{position:absolute;right:18px;top:50%;transform:translateY(-50%);display:none;background:transparent;border:0;width:44px;height:44px;border-radius:8px;align-items:center;justify-content:center;cursor:pointer;z-index:60}
+.hamburger{display:inline-block;width:22px;height:2px;background:var(--text);position:relative;border-radius:2px}
+.hamburger::before,.hamburger::after{content:"";position:absolute;left:0;width:22px;height:2px;background:var(--text);border-radius:2px;transition:transform 160ms ease, top 160ms ease, opacity 160ms ease}
 .hamburger::before{top:-7px}
 .hamburger::after{top:7px}
 
-/* mobile nav dropdown (hidden by default, built by JS) */
-.mobile-nav {
-  display:none;
-  position:fixed;
-  left:0;
-  right:0;
-  top:var(--header-height);
-  z-index:45;
-  background:linear-gradient(180deg, rgba(3,6,8,0.98), rgba(3,6,8,0.99));
-  border-bottom:1px solid rgba(255,255,255,0.02);
-  padding:8px 12px;
-  gap:6px;
-  flex-direction:column;
+/* ===== new: page layout ===== */
+.page-wrap{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding:22px 20px;
 }
-.mobile-nav a{
-  display:block;
-  padding:12px;
-  border-radius:8px;
-  color:var(--text);
-  text-decoration:none;
-  font-weight:700;
+.layout{
+  width:100%;
+  max-width:var(--max-content-width);
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
 }
-.mobile-nav a:hover{background:rgba(255,255,255,0.02)}
 
-/* main area (empty for now) */
-main[role="main"]{min-height:calc(100vh - var(--header-height));}
+/* sidebar (профиль) */
+.sidebar{
+  flex:0 0 var(--sidebar-width);
+}
+.sidebar-inner{
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  border-radius:12px;
+  padding:18px;
+  border:1px solid rgba(255,255,255,0.02);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+}
+.profile-top{display:flex;gap:12px;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.02);margin-bottom:12px}
+.profile-avatar{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#232425,#2c2d30);object-fit:cover}
+.profile-text .profile-name{font-weight:800;font-size:16px}
+.profile-text .profile-role{color:var(--muted);font-size:13px;margin-top:4px}
+
+/* side links */
+.side-links{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.side-links a{color:var(--muted);text-decoration:none;padding:10px;border-radius:8px;transition:background var(--transition), color var(--transition)}
+.side-links a:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+
+/* footer */
+.sidebar-footer{text-align:left;color:var(--muted);font-size:13px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.02);margin-top:10px}
+
+/* last project (main) */
+.last-project{flex:1}
+.project-card{
+  display:flex;
+  gap:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  border-radius:12px;
+  padding:16px;
+  border:1px solid rgba(255,255,255,0.02);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.45);
+  align-items:flex-start;
+}
+.project-thumb{flex:0 0 420px;max-width:420px;height:220px;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#232425,#2b2d30);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.18)}
+.project-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-placeholder{font-size:18px;color:rgba(255,255,255,0.06)}
+
+.project-body{flex:1;display:flex;flex-direction:column;gap:8px}
+.project-title{margin:0;font-size:20px;font-weight:800}
+.project-desc{color:var(--muted);margin:0}
+.project-meta{color:var(--muted);font-size:13px;margin-top:8px}
+.project-actions{margin-top:auto}
+
+/* button */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text);text-decoration:none;font-weight:700}
+.btn-primary{background:linear-gradient(90deg,var(--accent),#27B5FF);color:#07161b;border:0;box-shadow:0 8px 30px rgba(46,196,255,0.04)}
 
 /* responsive */
-@media (max-width:920px){
-  :root{--nav-gap:24px;--nav-font-size:15px}
-  .logo{left:20px;}
+@media (max-width:1000px){
+  .project-thumb{flex:0 0 320px;max-width:320px}
 }
-
 @media (max-width:720px){
-  .topnav{display:none}
-  .nav-toggle{display:flex}
-  .mobile-nav{display:none;flex-direction:column}
+  .layout{flex-direction:column;padding:0}
+  .sidebar{width:100%}
+  .project-card{flex-direction:column}
+  .project-thumb{width:100%;height:200px;max-width:none}
 }
 
-/* prefers reduced motion */
+/* prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce){
-  :root{--transition:0ms}
-  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  #bg-canvas{display:none!important}
+  *{animation:none!important;transition:none!important}
 }

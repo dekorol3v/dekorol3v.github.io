@@ -1,4 +1,4 @@
-// Minimal particles + mobile nav + particle toggle
+// Minimal particles + mobile nav (no toggle button)
 (function(){
   // --- particles setup ---
   const canvas = document.getElementById('bg-canvas');
@@ -8,7 +8,7 @@
   let particles = [];
   let raf = null;
   let reduced = false;
-  let enabled = true;
+  let enabled = true; // always enabled; no UI toggle
 
   function updateReduced(){ reduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false; }
   updateReduced();
@@ -103,20 +103,6 @@
   function start(){ if (!enabled) return; if (!raf) render(); }
   function stop(){ if (raf) cancelAnimationFrame(raf); raf = null; if (ctx) ctx.clearRect(0,0,W,H); }
 
-  function toggleParticles(force){
-    enabled = (typeof force === 'boolean') ? force : !enabled;
-    try { localStorage.setItem('particlesEnabled', enabled ? '1' : '0'); } catch(e){}
-    const btn = document.getElementById('particleToggleBtn');
-    if (btn) { btn.textContent = enabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ'; btn.setAttribute('aria-pressed', enabled ? 'true' : 'false'); }
-    if (enabled) start(); else stop();
-  }
-
-  // restore preference
-  try {
-    const s = localStorage.getItem('particlesEnabled');
-    if (s !== null) enabled = s === '1';
-  } catch(e){}
-
   // wire events
   window.addEventListener('resize', () => { resize(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
@@ -125,21 +111,7 @@
   resize();
   if (!reduced && enabled) start();
 
-  // create toggle button handler
-  (function createToggle(){
-    const btn = document.getElementById('particleToggleBtn');
-    if (!btn) return;
-    btn.addEventListener('click', () => toggleParticles());
-    if (reduced) {
-      btn.style.opacity = '0.75';
-      btn.title = 'Предпочтение уменьшенного движения включено';
-    }
-    // reflect initial state
-    btn.textContent = enabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ';
-    btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-  })();
-
-  // --- mobile nav toggle ---
+  // --- mobile nav toggle (no particle toggle) ---
   document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('mainNav');
     const toggle = document.getElementById('navToggle');
@@ -149,7 +121,6 @@
       if (mobileMenu) return;
       mobileMenu = document.createElement('div');
       mobileMenu.className = 'mobile-nav';
-      // clone links
       Array.from(nav.querySelectorAll('a')).forEach(a => {
         const link = a.cloneNode(true);
         link.addEventListener('click', () => { closeMenu(); });
@@ -176,11 +147,9 @@
       else closeMenu();
     });
 
-    // close on resize to desktop size
     window.addEventListener('resize', () => {
       if (window.innerWidth > 720 && mobileMenu) closeMenu();
     });
   });
 
-  // expose nothing to global scope
 })();

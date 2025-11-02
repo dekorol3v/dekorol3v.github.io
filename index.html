@@ -3,122 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>D. Sergeevich</title>
-  <meta name="description" content="Портфолио — работы, кейсы, контакты." />
+  <title>D. Sergeevich — Portfolio</title>
+  <meta name="description" content="Минималистичная страница с фоном-частицами и горизонтальным меню." />
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <!-- Skip link for keyboard users -->
   <a class="skip-link" href="#main">Пропустить навигацию</a>
 
+  <!-- canvas particles -->
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <header class="topbar" role="banner">
     <div class="topbar-inner">
-      <div class="logo">
-        <img src="assets/logo.svg" alt="logo" width="36" height="36">
+      <div class="logo" aria-hidden="false">
+        <!-- если нет logo.svg, текст покажется -->
+        <img src="assets/logo.svg" alt="D. Sergeevich logo" width="36" height="36">
         <span class="logo-text">D. Sergeevich</span>
       </div>
 
-      <nav class="topnav" aria-label="Главная навигация">
-        <a href="#projects">Работы</a>
+      <nav class="topnav" id="mainNav" aria-label="Главная навигация">
+        <a href="#home">Главная</a>
+        <a href="#works">Работы</a>
         <a href="#about">О себе</a>
         <a href="#contacts">Контакты</a>
-        <a href="admin.html" class="admin-link">Admin</a>
       </nav>
+
+      <button id="navToggle" class="nav-toggle" aria-controls="mainNav" aria-expanded="false" aria-label="Открыть меню">
+        <span class="hamburger" aria-hidden="true"></span>
+      </button>
     </div>
   </header>
 
-  <!-- full-width container; content pads inside -->
-  <div class="page-wrap">
-    <div class="layout" id="layout">
-      <aside class="sidebar" id="sidebar" aria-label="Боковая панель">
-        <div class="sidebar-inner">
-          <div class="profile">
-            <div class="avatar-placeholder" aria-hidden="true"></div>
-            <div class="profile-text">
-              <strong>Твоё имя</strong>
-              <small>Фронтенд / Дизайн</small>
-            </div>
-          </div>
-
-          <nav class="side-nav" aria-label="Боковое меню">
-            <a href="#projects" class="side-item">Портфолио</a>
-            <a href="#about" class="side-item">О себе</a>
-            <a href="#contacts" class="side-item">Контакты</a>
-          </nav>
-
-          <div class="sidebar-footer">
-            <small class="small">© <span id="year"></span> Твоё имя</small>
-          </div>
-        </div>
-      </aside>
-
-      <main class="content" id="main" role="main">
-        <section class="hero reveal" aria-label="Главный кейс">
-          <div class="hero-card" id="heroCard">
-            <div class="hero-image" id="heroImage" aria-hidden="true"></div>
-            <div class="hero-content">
-              <h1 class="hero-title">Привет — я делаю красивые интерфейсы</h1>
-              <p class="lead">Показываю тут свои лучшие кейсы — дизайн, вёрстка и интеграции.</p>
-              <div class="hero-cta">
-                <a class="btn btn-primary" href="#projects">Мои работы</a>
-                <a class="btn" href="#about">Подробнее обо мне</a>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ACHIEVEMENTS SLIDER -->
-        <section class="achievements-section" aria-label="Достижения">
-          <!-- класс под CSS: "ach-track" — это важно -->
-          <div class="ach-track" id="achievementsTrack" role="region" aria-label="Достижения"></div>
-        </section>
-
-        <section id="projects" class="projects-section">
-          <div class="section-head">
-            <h2>Выбранные работы</h2>
-            <p class="small muted">Ниже — карточки проектов. Нажмите на карточку для подробностей.</p>
-          </div>
-
-          <!-- role="list" помогает скринридерам понимать коллекцию -->
-          <div id="projects-grid" class="projects-grid" aria-live="polite" role="list">
-            <!-- Project cards rendered by scripts/main.js -->
-          </div>
-        </section>
-
-        <section id="about" class="about">
-          <h2>О себе</h2>
-          <p>Коротко: напиши пару строк о себе — чем занимаешься, какие технологии используешь, и что ищешь.</p>
-        </section>
-
-        <footer id="contacts" class="site-footer" role="contentinfo">
-          <div class="footer-inner">
-            <div>
-              <h3>Контакты</h3>
-              <p>Email: <a href="mailto:your@email.example">your@email.example</a></p>
-              <p>Telegram: <a href="https://t.me/yourtg" target="_blank" rel="noopener noreferrer">yourtg</a></p>
-            </div>
-            <small class="small muted">Сайт собран на HTML/CSS/JS — данные загружаются из <code>data/projects.json</code>.</small>
-          </div>
-        </footer>
-      </main>
-    </div>
-  </div>
-
-  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-panel" role="document" aria-labelledby="modalTitle">
-      <button id="modalClose" class="modal-close" aria-label="Закрыть">✕</button>
-      <h3 id="modalTitle"></h3>
-      <p id="modalDesc" class="small muted"></p>
-      <div id="modalGallery" class="modal-gallery"></div>
-      <div style="margin-top:12px">
-        <!-- rel установлен по умолчанию; JS может устанавливать target когда нужно -->
-        <a id="modalLink" class="btn" href="#" rel="noopener noreferrer">Открыть проект</a>
+  <main id="main" role="main">
+    <section class="hero" id="home" aria-label="Главная">
+      <div class="hero-inner">
+        <h1>D. Sergeevich</h1>
+        <p class="lead">Чистый фон с частицами — минималистичное портфолио.</p>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
+
+  <button id="particleToggleBtn" class="particle-toggle" aria-pressed="true">Частицы: ВКЛ</button>
 
   <script src="scripts/main.js" defer></script>
 </body>

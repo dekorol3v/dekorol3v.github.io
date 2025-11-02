@@ -14,7 +14,7 @@
   <header class="topbar" role="banner">
     <div class="topbar-inner">
       <div class="logo">
-        <img src="assets/logo.svg" alt="Логотип D. Sergeevich" width="36" height="36">
+        <img src="assets/logo.svg" alt="logo" width="36" height="36">
         <span class="logo-text">D. Sergeevich</span>
       </div>
 
@@ -61,6 +61,52 @@
               <a class="btn btn-primary shimmer" href="#projects">Мои работы</a>
               <a class="btn" href="#about">Подробнее обо мне</a>
             </div>
+
+            <!-- Achievements slider -->
+            <div class="achievements-wrap" aria-hidden="false">
+              <div class="achievements-track" id="achTrack" aria-label="Достижения">
+                <div class="ach-item">
+                  <div class="ach-badge" aria-hidden="true">
+                    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="32" cy="32" r="30" fill="#0f1a20"/>
+                      <text x="50%" y="54%" font-size="18" fill="#2EC4FF" text-anchor="middle" font-family="Inter, Arial" font-weight="700">1</text>
+                    </svg>
+                  </div>
+                  <div class="ach-text">
+                    <strong>Design Award</strong>
+                    <div class="small muted">2024 — UI / UX</div>
+                  </div>
+                </div>
+
+                <div class="ach-item">
+                  <div class="ach-badge">
+                    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="2" y="2" width="60" height="60" rx="10" fill="#0f1a20"/>
+                      <text x="50%" y="54%" font-size="18" fill="#27B5FF" text-anchor="middle" font-family="Inter, Arial" font-weight="700">★</text>
+                    </svg>
+                  </div>
+                  <div class="ach-text">
+                    <strong>Top Dev</strong>
+                    <div class="small muted">Open-source contributor</div>
+                  </div>
+                </div>
+
+                <div class="ach-item">
+                  <div class="ach-badge">
+                    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="32" cy="32" r="30" fill="#0f1a20"/>
+                      <text x="50%" y="54%" font-size="14" fill="#2EC4FF" text-anchor="middle" font-family="Inter, Arial" font-weight="700">Figma</text>
+                    </svg>
+                  </div>
+                  <div class="ach-text">
+                    <strong>Design system</strong>
+                    <div class="small muted">Component library</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <!-- /achievements -->
           </div>
         </div>
       </section>
@@ -95,13 +141,13 @@
   </div>
 
   <!-- Modal for project details -->
-  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal-backdrop" id="modalBackdrop"></div>
-    <div class="modal-panel" role="document">
+    <div class="modal-panel" role="document" aria-labelledby="modalTitle">
       <button id="modalClose" class="modal-close" aria-label="Закрыть">✕</button>
       <h3 id="modalTitle"></h3>
       <p id="modalDesc" class="small muted"></p>
-      <div id="modalGallery" class="modal-gallery" aria-live="polite"></div>
+      <div id="modalGallery" class="modal-gallery"></div>
       <div style="margin-top:12px"><a id="modalLink" class="btn" href="#" target="_blank" rel="noopener">Открыть проект</a></div>
     </div>
   </div>

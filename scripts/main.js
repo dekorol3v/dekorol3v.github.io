@@ -1,4 +1,4 @@
-// scripts/main.js — particles + UI (particle toggle, hero = last project, no parallax)
+// scripts/main.js — particles + UI (particle toggle, hero = last project, no parallax, sidebar sync)
 
 (function () {
   // ---- Particles subsystem ----
@@ -133,12 +133,10 @@
     try { localStorage.setItem('particlesEnabled', particleEnabled ? '1' : '0'); } catch(e){}
     console.info('Particles enabled:', particleEnabled);
     if (particleEnabled) startParticles(); else stopParticles();
-    // update floating button text if exists
     const btn = document.getElementById('particleToggleBtn');
     if (btn) btn.textContent = particleEnabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ';
   }
 
-  // restore pref
   try {
     const saved = localStorage.getItem('particlesEnabled');
     if (saved !== null) particleEnabled = saved === '1';
@@ -167,12 +165,42 @@
     btn.id = 'particleToggleBtn';
     btn.type = 'button';
     btn.textContent = particleEnabled ? 'Частицы: ВКЛ' : 'Частицы: ВЫКЛ';
+    btn.style.zIndex = 120;
     btn.addEventListener('click', () => toggleParticles());
     document.body.appendChild(btn);
   })();
 
-  // ---- UI logic: hero, modal, projects ----
+  // ---- UI logic: hero, modal, projects, sidebar sync ----
   document.addEventListener('DOMContentLoaded', () => {
+    // Debounce util (used by sync)
+    function debounce(fn, wait=120){
+      let t = null;
+      return function(...args){
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
+    // sync sidebar height to hero-card on wide screens
+    function syncSidebarHeight(){
+      const sidebarInner = document.querySelector('.sidebar-inner');
+      const heroCard = document.querySelector('.hero-card');
+      if(!sidebarInner || !heroCard) return;
+      if (window.innerWidth <= 720) {
+        sidebarInner.style.height = '';
+        return;
+      }
+      window.requestAnimationFrame(() => {
+        const heroRect = heroCard.getBoundingClientRect();
+        const minH = 160;
+        const newH = Math.max(minH, Math.round(heroRect.height));
+        sidebarInner.style.height = newH + 'px';
+      });
+    }
+    const debouncedSync = debounce(syncSidebarHeight, 110);
+    window.addEventListener('resize', debouncedSync);
+    window.addEventListener('orientationchange', debouncedSync);
+
     // set year
     const yearEl = document.getElementById('year'); if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -217,8 +245,6 @@
     if(modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    // **Removed parallax**: no mousemove handlers here (hero won't move)
-
     // reveal on scroll
     const revealEls = Array.from(document.querySelectorAll('.reveal'));
     revealEls.forEach(el => el.classList.add('is-hidden'));
@@ -262,6 +288,8 @@
         grid.appendChild(card);
         if (observer) observer.observe(card); else card.classList.add('in-view');
       }
+      // ensure sidebar height sync after placeholders
+      debouncedSync();
     }
 
     function renderProjects(projects){
@@ -283,7 +311,7 @@
 
         const img = card.querySelector('img');
         if(img){
-          // keep subtle hover zoom on thumbnails (no mouse parallax)
+          // subtle hover zoom on thumbnails
           card.addEventListener('mouseover', () => img.style.transform = 'scale(1.02)');
           card.addEventListener('mouseleave', () => img.style.transform = 'scale(1)');
           img.style.transition = 'transform .35s cubic-bezier(.2,.9,.2,1)';
@@ -307,6 +335,10 @@
       } catch(e) {
         console.warn('Не удалось установить hero из последнего проекта', e);
       }
+
+      // sync sidebar height with hero after rendering (and a slight delay for images/backgrounds)
+      debouncedSync();
+      setTimeout(debouncedSync, 120);
     }
 
     (function loadProjects(){
@@ -324,6 +356,9 @@
     })();
 
     function escapeHtml(s){ if (s == null) return ''; const str = String(s); return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // initial sync attempt after DOM ready
+    setTimeout(debouncedSync, 60);
   });
 
 })(); // IIFE end

@@ -74,6 +74,8 @@ body{
   box-shadow: var(--card-shadow);
   backdrop-filter: blur(6px);
   height:100%; /* fill available flex height */
+  /* чтобы избежать резких изменений высоты при загрузке геро-изображения */
+  min-height: 360px;
 }
 .profile{display:flex;gap:12px;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.02);margin-bottom:12px}
 .avatar-placeholder{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#232425,#2c2d30);box-shadow:inset 0 -3px 8px rgba(0,0,0,0.6)}
@@ -90,7 +92,7 @@ body{
   border-radius:18px;
   overflow:hidden;
   align-items:stretch;
-  min-height:320px;
+  min-height:360px; /* увеличена для стабильности и равенства с сайдбаром */
   position:relative;
   padding:0;
   border:1px solid rgba(255,255,255,0.03);
@@ -110,6 +112,8 @@ body{
   transition:filter .25s ease;
   filter: contrast(0.95) saturate(0.95);
   position:relative;
+  will-change: background-image;
+  transform: translateZ(0); /* gpu hint */
 }
 .hero-image::after{content:"";position:absolute;inset:0;border-radius:0;mix-blend-mode:multiply;background:linear-gradient(90deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.35) 60%, rgba(0,0,0,0.6) 100%)}
 .hero-content{padding:32px;display:flex;flex-direction:column;justify-content:center;gap:12px;flex:1}
@@ -146,6 +150,10 @@ body{
 
 /* achievements: new section (horizontal auto-scroll / slider) */
 .achievements-section{margin:20px 0}
+
+/* Поддерживаем разные варианты селектора: id/class/old/new */
+#achievementsTrack,
+.ach-track,
 .achievements-track{
   display:flex;
   gap:12px;
@@ -157,9 +165,22 @@ body{
   border:1px solid rgba(255,255,255,0.02);
   box-shadow: var(--card-shadow);
   position:relative;
-  /* allow inner duplicated rows for smooth loop */
+  min-height: 112px; /* обеспечивает стабильную высоту трека */
+  scroll-behavior: smooth; /* делаем прокрутку трека плавной */
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0); /* gpu layer for smoothness */
 }
-.ach-row, .ach-row-copy{display:flex;gap:12px}
+
+/* скрываем скроллбар, чтобы не мешал (эстетика) */
+#achievementsTrack::-webkit-scrollbar,
+.achievements-track::-webkit-scrollbar,
+.ach-track::-webkit-scrollbar { display: none; height:0; width:0; }
+#achievementsTrack { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* row контейнеры (используются в JS: ach-row, ach-row-copy) */
+.ach-row, .ach-row-copy{ display:flex; gap:12px; align-items:center; transform: translateZ(0); will-change: transform; }
+
+/* элементы ачивок — чуть оптимизируем для производительности */
 .ach-item{
   flex:0 0 auto;
   width:220px;
@@ -172,7 +193,11 @@ body{
   background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
   border:1px solid rgba(255,255,255,0.03);
   box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  will-change: transform;
+  transition: transform 280ms cubic-bezier(.2,.9,.2,1);
 }
+.ach-item:hover{ transform: translateY(-4px); }
+
 .ach-icon{width:56px;height:56px;border-radius:8px;background:#0f1315;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);font-size:18px}
 .ach-text{font-size:14px;display:flex;flex-direction:column}
 .ach-title{font-weight:700;margin-bottom:4px}
@@ -231,13 +256,13 @@ body{
 @media (max-width:720px){
   .layout{flex-direction:column;padding:0 12px;margin:12px auto}
   .sidebar{display:block;width:auto;order:0}
-  .sidebar-inner{height:auto}
+  .sidebar-inner{height:auto; min-height: auto} /* отменяем min-height на мобильных, чтобы не ломать поток */
   .projects-grid{grid-template-columns:1fr}
   .topnav{display:none}
   .hero-content{padding:20px}
   .hero-title{font-size:26px}
   /* achievements responsive: make scrollable on small screens */
-  .achievements-track{overflow-x:auto; -webkit-overflow-scrolling:touch}
+  .achievements-track{overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-behavior:auto}
   .ach-row, .ach-row-copy{display:flex}
   .ach-item{flex:0 0 200px}
 }
@@ -257,4 +282,3 @@ img{max-width:100%;height:auto;display:block}
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   #bg-canvas { display: none !important; }
 }
-

@@ -1,6 +1,6 @@
-// Minimal particles + mobile nav + logo fallback (вариант A: текст всегда виден)
+// Minimal particles + mobile nav + last-project renderer + logo fallback (вариант A)
 (function(){
-  // --- particles setup ---
+  /* ========== Particles (unchanged) ========== */
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas ? canvas.getContext('2d', { alpha: true }) : null;
   let DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -13,9 +13,7 @@
   function updateReduced(){ reduced = (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || false; }
   updateReduced();
   if (window.matchMedia) {
-    try {
-      window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { updateReduced(); resize(); });
-    } catch (e) {}
+    try { window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { updateReduced(); resize(); }); } catch(e) {}
   }
 
   function rand(a,b){ return Math.random()*(b-a)+a; }
@@ -56,7 +54,6 @@
   function render(){
     if (!ctx || !enabled) return;
     ctx.clearRect(0,0,W,H);
-    // radial tint
     try {
       const g = ctx.createRadialGradient(W*0.75,H*0.25,0,W*0.75,H*0.25,Math.max(W,H)*0.8);
       g.addColorStop(0,'rgba(46,196,255,0.01)');
@@ -64,7 +61,6 @@
       ctx.fillStyle = g;
       ctx.fillRect(0,0,W,H);
     } catch(e){}
-
     for (let p of particles){
       p.x += p.vx; p.y += p.vy;
       if (p.x < -10) p.x = W+10;
@@ -76,8 +72,6 @@
       ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
       ctx.fill();
     }
-
-    // simple connections limited for perf
     const n = particles.length;
     const cap = n > 60 ? 30 : n;
     for (let i=0;i<n;i++){
@@ -96,43 +90,35 @@
         }
       }
     }
-
     raf = requestAnimationFrame(render);
   }
 
   function start(){ if (!enabled) return; if (!raf) render(); }
   function stop(){ if (raf) cancelAnimationFrame(raf); raf = null; if (ctx) ctx.clearRect(0,0,W,H); }
 
-  // wire events
   window.addEventListener('resize', () => { resize(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
 
-  // init
   resize();
   if (!reduced && enabled) start();
 
-  // --- logo fallback: если img не загрузится, спрячем img, но НЕ скрываем текст -->
+  /* ========== Logo fallback variant A (text always visible) ========== */
   (function ensureLogoFallback(){
     function init(){
       const img = document.querySelector('.logo img');
       const text = document.querySelector('.logo-text');
       if (!img) { if (text) text.style.display = 'block'; return; }
-
-      img.addEventListener('error', () => {
-        try { img.style.display = 'none'; } catch(e){}
-        if (text) text.style.display = 'block';
-      }, { once: true });
-
+      img.addEventListener('error', () => { try { img.style.display = 'none'; } catch(e){} if (text) text.style.display = 'block'; }, { once: true });
       if (img.complete) {
         if (img.naturalWidth === 0) img.dispatchEvent(new Event('error'));
-        else if (text) text.style.display = 'block'; // keep text visible always (variant A)
+        else if (text) text.style.display = 'block';
       }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
   })();
 
-  // --- mobile nav toggle ---
+  /* ========== Mobile nav (unchanged) ========== */
   document.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('mainNav');
     const toggle = document.getElementById('navToggle');
@@ -172,5 +158,72 @@
       if (window.innerWidth > 720 && mobileMenu) closeMenu();
     });
   });
+
+  /* ========== Last project renderer ==========
+     Попытается загрузить data/projects.json и взять последний элемент.
+     Формат ожидается как массив объектов:
+     [{id, title, subtitle, description, tags, cover, url}, ...]
+  ============================================*/
+  (function renderLastProject(){
+    const container = document.getElementById('lastProject');
+    if (!container) return;
+
+    function render(p){
+      const card = container.querySelector('.project-card');
+      if (!card) return;
+      // thumb
+      const thumbEl = card.querySelector('.project-thumb');
+      thumbEl.innerHTML = '';
+      if (p.cover) {
+        const img = document.createElement('img');
+        img.src = p.cover;
+        img.alt = p.title || 'project';
+        img.loading = 'lazy';
+        thumbEl.appendChild(img);
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'thumb-placeholder';
+        ph.textContent = 'Project image';
+        thumbEl.appendChild(ph);
+      }
+      // body
+      const title = card.querySelector('.project-title');
+      const desc = card.querySelector('.project-desc');
+      const meta = card.querySelector('.project-meta');
+      const openBtn = document.getElementById('projectOpen');
+
+      if (title) title.textContent = p.title || 'Без названия';
+      if (desc) desc.textContent = p.subtitle || p.description || '';
+      if (meta) meta.textContent = Array.isArray(p.tags) ? p.tags.join(' • ') : '';
+      if (openBtn) {
+        if (p.url) openBtn.href = p.url;
+        else openBtn.href = '#';
+      }
+    }
+
+    function fallback(){
+      // ничего не делаем — оставляем placeholder, но можно обновить текст
+    }
+
+    // try fetch
+    fetch('data/projects.json', {cache: 'no-store'}).then(r => {
+      if (!r.ok) throw new Error('no projects.json');
+      return r.json();
+    }).then(data => {
+      if (!Array.isArray(data) || data.length === 0) { fallback(); return; }
+      const last = data[data.length - 1];
+      render(last);
+    }).catch(err => {
+      // fallback to defaults if fetch failed
+      console.info('projects.json not found — using placeholder for last project', err);
+      fallback();
+    });
+  })();
+
+  // set year in footer if exists
+  (function setYear(){
+    const y = document.getElementById('year');
+    if (y) y.textContent = new Date().getFullYear();
+  })();
 
 })();

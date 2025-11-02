@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>D. Sergeevich — Portfolio</title>
-  <meta name="description" content="Минималистичная страница с фоном-частицами и горизонтальным меню." />
+  <title>D. Sergeevich</title>
+  <meta name="description" content="Минималистичное портфолио — фон с частицами и навигация." />
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
@@ -16,7 +16,6 @@
   <header class="topbar" role="banner">
     <div class="topbar-inner">
       <div class="logo" aria-hidden="false">
-        <!-- если нет logo.svg, текст покажется -->
         <img src="assets/logo.svg" alt="D. Sergeevich logo" width="36" height="36">
         <span class="logo-text">D. Sergeevich</span>
       </div>
@@ -34,16 +33,9 @@
     </div>
   </header>
 
-  <main id="main" role="main">
-    <section class="hero" id="home" aria-label="Главная">
-      <div class="hero-inner">
-        <h1>D. Sergeevich</h1>
-        <p class="lead">Чистый фон с частицами — минималистичное портфолио.</p>
-      </div>
-    </section>
+  <main id="main" role="main" aria-hidden="true">
+    <!-- пустой основной контент — пока только фон и меню -->
   </main>
-
-  <button id="particleToggleBtn" class="particle-toggle" aria-pressed="true">Частицы: ВКЛ</button>
 
   <script src="scripts/main.js" defer></script>
 </body>

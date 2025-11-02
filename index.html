@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <!-- Canvas for floating particles -->
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <header class="topbar" role="banner">
@@ -27,120 +26,83 @@
     </div>
   </header>
 
-  <div class="layout" id="layout">
-    <aside class="sidebar" id="sidebar" aria-label="Боковая панель">
-      <div class="sidebar-inner">
-        <div class="profile">
-          <div class="avatar-placeholder" aria-hidden="true"></div>
-          <div class="profile-text">
-            <strong>Твоё имя</strong>
-            <small>Фронтенд / Дизайн</small>
+  <!-- full-width container; content pads inside -->
+  <div class="page-wrap">
+    <div class="layout" id="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Боковая панель">
+        <div class="sidebar-inner">
+          <div class="profile">
+            <div class="avatar-placeholder" aria-hidden="true"></div>
+            <div class="profile-text">
+              <strong>Твоё имя</strong>
+              <small>Фронтенд / Дизайн</small>
+            </div>
+          </div>
+
+          <nav class="side-nav" aria-label="Боковое меню">
+            <a href="#projects" class="side-item">Портфолио</a>
+            <a href="#about" class="side-item">О себе</a>
+            <a href="#contacts" class="side-item">Контакты</a>
+          </nav>
+
+          <div class="sidebar-footer">
+            <small class="small">© <span id="year"></span> Твоё имя</small>
           </div>
         </div>
+      </aside>
 
-        <nav class="side-nav" aria-label="Боковое меню">
-          <a href="#projects" class="side-item">Портфолио</a>
-          <a href="#about" class="side-item">О себе</a>
-          <a href="#contacts" class="side-item">Контакты</a>
-        </nav>
-
-        <div class="sidebar-footer">
-          <small class="small">© <span id="year"></span> Твоё имя</small>
-        </div>
-      </div>
-    </aside>
-
-    <main class="content" id="main" role="main">
-      <section class="hero reveal" aria-label="Главный кейс">
-        <div class="hero-card" id="heroCard">
-          <div class="hero-image" id="heroImage" aria-hidden="true"></div>
-          <div class="hero-content">
-            <h1 class="hero-title">Привет — я делаю красивые интерфейсы</h1>
-            <p class="lead">Показываю тут свои лучшие кейсы — дизайн, вёрстка и интеграции.</p>
-            <div class="hero-cta">
-              <a class="btn btn-primary shimmer" href="#projects">Мои работы</a>
-              <a class="btn" href="#about">Подробнее обо мне</a>
-            </div>
-
-            <!-- Achievements slider -->
-            <div class="achievements-wrap" aria-hidden="false">
-              <div class="achievements-track" id="achTrack" aria-label="Достижения">
-                <div class="ach-item">
-                  <div class="ach-badge" aria-hidden="true">
-                    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="32" cy="32" r="30" fill="#0f1a20"/>
-                      <text x="50%" y="54%" font-size="18" fill="#2EC4FF" text-anchor="middle" font-family="Inter, Arial" font-weight="700">1</text>
-                    </svg>
-                  </div>
-                  <div class="ach-text">
-                    <strong>Design Award</strong>
-                    <div class="small muted">2024 — UI / UX</div>
-                  </div>
-                </div>
-
-                <div class="ach-item">
-                  <div class="ach-badge">
-                    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="2" y="2" width="60" height="60" rx="10" fill="#0f1a20"/>
-                      <text x="50%" y="54%" font-size="18" fill="#27B5FF" text-anchor="middle" font-family="Inter, Arial" font-weight="700">★</text>
-                    </svg>
-                  </div>
-                  <div class="ach-text">
-                    <strong>Top Dev</strong>
-                    <div class="small muted">Open-source contributor</div>
-                  </div>
-                </div>
-
-                <div class="ach-item">
-                  <div class="ach-badge">
-                    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="32" cy="32" r="30" fill="#0f1a20"/>
-                      <text x="50%" y="54%" font-size="14" fill="#2EC4FF" text-anchor="middle" font-family="Inter, Arial" font-weight="700">Figma</text>
-                    </svg>
-                  </div>
-                  <div class="ach-text">
-                    <strong>Design system</strong>
-                    <div class="small muted">Component library</div>
-                  </div>
-                </div>
-
+      <main class="content" id="main" role="main">
+        <section class="hero reveal" aria-label="Главный кейс">
+          <div class="hero-card" id="heroCard">
+            <div class="hero-image" id="heroImage" aria-hidden="true"></div>
+            <div class="hero-content">
+              <h1 class="hero-title">Привет — я делаю красивые интерфейсы</h1>
+              <p class="lead">Показываю тут свои лучшие кейсы — дизайн, вёрстка и интеграции.</p>
+              <div class="hero-cta">
+                <a class="btn btn-primary" href="#projects">Мои работы</a>
+                <a class="btn" href="#about">Подробнее обо мне</a>
               </div>
             </div>
-            <!-- /achievements -->
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="projects" class="projects-section">
-        <div class="section-head">
-          <h2>Выбранные работы</h2>
-          <p class="small muted">Ниже — карточки проектов. Нажмите на карточку для подробностей.</p>
-        </div>
-
-        <div id="projects-grid" class="projects-grid" aria-live="polite">
-          <!-- Project cards rendered by scripts/main.js -->
-        </div>
-      </section>
-
-      <section id="about" class="about">
-        <h2>О себе</h2>
-        <p>Коротко: напиши пару строк о себе — чем занимаешься, какие технологии используешь, и что ищешь.</p>
-      </section>
-
-      <footer id="contacts" class="site-footer" role="contentinfo">
-        <div class="footer-inner">
-          <div>
-            <h3>Контакты</h3>
-            <p>Email: <a href="mailto:your@email.example">your@email.example</a></p>
-            <p>Telegram: <a href="https://t.me/yourtg" target="_blank" rel="noopener">yourtg</a></p>
+        <!-- ACHIEVEMENTS SLIDER -->
+        <section class="achievements-section" aria-label="Достижения">
+          <div class="achievements-track" id="achievementsTrack" aria-hidden="false">
+            <!-- JS will render achievement items here -->
           </div>
-          <small class="small muted">Сайт собран на HTML/CSS/JS — данные загружаются из <code>data/projects.json</code>.</small>
-        </div>
-      </footer>
-    </main>
+        </section>
+
+        <section id="projects" class="projects-section">
+          <div class="section-head">
+            <h2>Выбранные работы</h2>
+            <p class="small muted">Ниже — карточки проектов. Нажмите на карточку для подробностей.</p>
+          </div>
+
+          <div id="projects-grid" class="projects-grid" aria-live="polite">
+            <!-- Project cards rendered by scripts/main.js -->
+          </div>
+        </section>
+
+        <section id="about" class="about">
+          <h2>О себе</h2>
+          <p>Коротко: напиши пару строк о себе — чем занимаешься, какие технологии используешь, и что ищешь.</p>
+        </section>
+
+        <footer id="contacts" class="site-footer" role="contentinfo">
+          <div class="footer-inner">
+            <div>
+              <h3>Контакты</h3>
+              <p>Email: <a href="mailto:your@email.example">your@email.example</a></p>
+              <p>Telegram: <a href="https://t.me/yourtg" target="_blank" rel="noopener">yourtg</a></p>
+            </div>
+            <small class="small muted">Сайт собран на HTML/CSS/JS — данные загружаются из <code>data/projects.json</code>.</small>
+          </div>
+        </footer>
+      </main>
+    </div>
   </div>
 
-  <!-- Modal for project details -->
   <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal-backdrop" id="modalBackdrop"></div>
     <div class="modal-panel" role="document" aria-labelledby="modalTitle">
